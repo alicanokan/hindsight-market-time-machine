@@ -12,7 +12,7 @@ Bold, comic / neo-brutalist look. Built to be fun and easy — *not* to give fin
 
 ---
 
-## Run it
+## Run it locally
 
 Needs **Node 18+** (uses the built-in `fetch`). No `npm install` — zero dependencies.
 
@@ -22,6 +22,37 @@ node server.js
 ```
 
 Change the port with `PORT=8080 node server.js`.
+
+## Deploy it online (pick one — all free tiers)
+
+The app is a plain Node process that reads `PORT` and binds `0.0.0.0`, with a
+`/healthz` check — so it runs on any host with **no build step**.
+
+### Render (one click)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/alicanokan/hindsight-market-time-machine)
+
+Click → sign in to Render → it reads `render.yaml` and deploys. Free plan, gives a `*.onrender.com` URL.
+
+### Railway
+
+New Project → **Deploy from GitHub repo** → pick this repo. Railway auto-detects Node and runs `npm start` (`node server.js`). No config needed.
+
+### Fly.io
+
+```bash
+fly launch --now       # uses the included Dockerfile; pick a name & region
+```
+
+### Any Docker host
+
+```bash
+docker build -t hindsight .
+docker run -p 4321:4321 hindsight
+```
+
+> Note: **Vercel/Netlify** are serverless-first and don't run a long-lived `http.createServer`
+> as-is. Prefer Render / Railway / Fly / Docker, which run the Node process directly.
 
 ---
 
