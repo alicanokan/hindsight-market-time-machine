@@ -168,20 +168,30 @@ async function fetchJSON(url, ttlMs = 60000) {
 /* -------------------------------------------------------------------------- */
 async function getQuote(asset) {
   if (asset.type === 'crypto') {
-    const u = `https://api.coingecko.com/api/v3/simple/price?ids=${asset.id}&vs_currencies=usd&include_24hr_change=true`;
+    // 1) CoinGecko (primary)
     try {
+      const u = `https://api.coingecko.com/api/v3/simple/price?ids=${asset.id}&vs_currencies=usd&include_24hr_change=true`;
       const j = await fetchJSON(u, 30000);
       const row = j[asset.id] || {};
       if (row.usd != null) return { price: row.usd, change24h: row.usd_24h_change ?? null, currency: 'USD' };
-      throw new Error('no price');
-    } catch (e) {
-      // Live-price endpoint throttled — derive from the (usually cached) daily series.
-      const h = await getHistory(asset, 3);
-      const last = h[h.length - 1], prev = h[h.length - 2];
-      if (!last) throw e;
-      const change = prev ? ((last.price - prev.price) / prev.price) * 100 : null;
-      return { price: last.price, change24h: change, currency: 'USD', derived: true };
-    }
+    } catch (e) { /* fall through */ }
+
+    // 2) Coinbase (independent source; one call gives price + 24h change)
+    try {
+      const s = await fetchJSON(`https://api.exchange.coinbase.com/products/${asset.symbol}-USD/stats`, 30000);
+      if (s && s.last != null) {
+        const last = parseFloat(s.last), open = parseFloat(s.open);
+        const change = open ? ((last - open) / open) * 100 : null;
+        return { price: last, change24h: change, currency: 'USD', source: 'coinbase' };
+      }
+    } catch (e) { /* fall through */ }
+
+    // 3) Derive from the (usually cached) daily history as a last resort
+    const h = await getHistory(asset, 3);
+    const last = h[h.length - 1], prev = h[h.length - 2];
+    if (!last) throw httpErr(502, 'price temporarily unavailable');
+    const change = prev ? ((last.price - prev.price) / prev.price) * 100 : null;
+    return { price: last.price, change24h: change, currency: 'USD', derived: true };
   } else {
     const u = `https://query1.finance.yahoo.com/v8/finance/chart/${asset.id}?range=5d&interval=1d`;
     const j = await fetchJSON(u, 30000);
