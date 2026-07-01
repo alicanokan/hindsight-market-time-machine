@@ -1,0 +1,17 @@
+# One-click deploy on Render (https://render.com) — free web service.
+# In Render: New + → Blueprint → connect this repo. It reads this file.
+services:
+  - type: web
+    name: hindsight
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: "echo 'no dependencies to build'"
+    startCommand: "node server.js"
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production

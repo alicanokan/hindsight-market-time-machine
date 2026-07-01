@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HINDSIGHT — the market time machine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⏳</text></svg>" />
+</head>
+<body>
+
+<!-- floating sticker shapes -->
+<div class="stickers" aria-hidden="true">
+  <span class="stk stk-star">✦</span>
+  <span class="stk stk-blob"></span>
+  <span class="stk stk-hex"></span>
+  <span class="stk stk-zig">〰</span>
+</div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">⏳</span>
+    <span class="brand-name">HIND<span class="brand-accent">SIGHT</span></span>
+  </div>
+  <nav class="nav">
+    <a href="#machine">TIME MACHINE</a>
+    <a href="#timeline">FORECAST</a>
+    <a href="#forums">FORUM SCAN</a>
+    <a href="#radar">SCAM RADAR</a>
+    <a href="#clouds">NEWS CLOUDS</a>
+    <a href="#pundits">WHO'S TALKING</a>
+  </nav>
+  <div class="disclaimer-pill">FOR FUN · NOT ADVICE</div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <p class="kicker">★ THE MARKET TIME MACHINE ★ SPECULATION FOR DUMMIES ★</p>
+    <h1 class="hero-title">
+      BET IN THE <span class="hl hl-yellow">PAST.</span><br />
+      SEE WHAT <span class="hl hl-pink">REALLY</span><br />
+      HAPPENED.
+    </h1>
+    <p class="hero-sub">
+      Pick a coin or a stock. Travel back to any day. Pretend you placed a bet —
+      then watch <b>real historical prices</b> reveal if you'd be rich, wrecked, or
+      just fine. Plus a comic peek at tomorrow's possibilities, live forum scans,
+      a scam radar, and news clouds from around the world.
+    </p>
+
+    <div class="asset-picker" id="assetPicker"><!-- filled by JS --></div>
+
+    <div class="ticker-card" id="tickerCard">
+      <div class="ticker-loading">Loading live price…</div>
+    </div>
+  </div>
+</section>
+
+<!-- TIME MACHINE / BACKTEST -->
+<section id="machine" class="panel panel-yellow">
+  <div class="panel-head">
+    <span class="panel-num">01</span>
+    <h2 class="panel-title">THE TIME MACHINE</h2>
+    <p class="panel-tag">Place a pretend bet in the past → real outcome today</p>
+  </div>
+
+  <div class="machine-grid">
+    <form class="bet-form" id="betForm">
+      <label class="fld">
+        <span>I would have bet on</span>
+        <div class="asset-echo" id="betAsset">Bitcoin</div>
+      </label>
+      <label class="fld">
+        <span>Back on this day</span>
+        <input type="date" id="betDate" required />
+      </label>
+      <label class="fld">
+        <span>With this much money ($)</span>
+        <input type="number" id="betAmount" value="100" min="1" step="any" required />
+      </label>
+      <div class="fld">
+        <span>Betting that price would…</span>
+        <div class="dir-toggle">
+          <button type="button" class="dir active" data-dir="long">📈 GO UP (long)</button>
+          <button type="button" class="dir" data-dir="short">📉 GO DOWN (short)</button>
+        </div>
+      </div>
+      <button type="submit" class="big-btn" id="runBet">⏳ RUN THE TIME MACHINE</button>
+      <div class="quick-dates" id="quickDates"></div>
+    </form>
+
+    <div class="bet-result" id="betResult">
+      <div class="bet-empty">
+        <div class="bet-empty-emoji">🕰️</div>
+        <p>Set a date and hit <b>RUN THE TIME MACHINE</b> to see the alternate reality where you placed that bet.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FORECAST TIMELINE -->
+<section id="timeline" class="panel panel-dark">
+  <div class="panel-head">
+    <span class="panel-num">02</span>
+    <h2 class="panel-title">THE POSSIBILITY TIMELINE</h2>
+    <p class="panel-tag">Real past → NOW → a comic fan of what <i>could</i> happen next</p>
+  </div>
+  <div class="forecast-wrap">
+    <div class="forecast-chart" id="forecastChart"><div class="loading">Building the timeline…</div></div>
+    <div class="catalyst-rail" id="catalystRail"></div>
+  </div>
+  <p class="fineprint">The colored fan is a <b>statistical possibility cone</b> built from this asset's own recent
+    volatility — it shows how wide the future <i>could</i> spread, not where price <i>will</i> go. Nobody knows the future. Not us, not anyone.</p>
+</section>
+
+<!-- FORUM SCAN -->
+<section id="forums" class="panel panel-green">
+  <div class="panel-head">
+    <span class="panel-num">03</span>
+    <h2 class="panel-title">FORUM SCANNER</h2>
+    <p class="panel-tag">What the crowd keeps repeating right now (live from Reddit)</p>
+  </div>
+  <div class="forum-grid">
+    <div class="theme-cloud-box">
+      <h3 class="mini-h">🔁 REPEATED CASES</h3>
+      <p class="mini-sub">Bigger word = the crowd won't shut up about it</p>
+      <div class="theme-cloud" id="themeCloud"><div class="loading">Scanning forums…</div></div>
+    </div>
+    <div class="post-list-box">
+      <h3 class="mini-h">🔥 HOT POSTS</h3>
+      <div class="post-list" id="postList"><div class="loading">Loading posts…</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SCAM RADAR -->
+<section id="radar" class="panel panel-pink">
+  <div class="panel-head">
+    <span class="panel-num">04</span>
+    <h2 class="panel-title">SCAM RADAR</h2>
+    <p class="panel-tag">Posts that smell like a scam or hype trap — with reasons</p>
+  </div>
+  <div class="radar-list" id="radarList"><div class="loading">Sweeping for scams…</div></div>
+  <p class="fineprint">Auto-flagged by matching classic scam phrases (giveaways, "double your", "guaranteed",
+    seed-phrase asks, urgency…). A flag is a <b>caution, not proof</b>. Never send crypto to strangers, never share your seed phrase.</p>
+</section>
+
+<!-- NEWS CLOUDS -->
+<section id="clouds" class="panel panel-blue">
+  <div class="panel-head">
+    <span class="panel-num">05</span>
+    <h2 class="panel-title">NEWS CLOUDS AROUND THE WORLD</h2>
+    <p class="panel-tag">What each region's headlines are buzzing about</p>
+  </div>
+  <div class="clouds-grid" id="cloudsGrid"><div class="loading">Gathering headlines worldwide…</div></div>
+</section>
+
+<!-- PUNDIT / SOURCE PROFILER -->
+<section id="pundits" class="panel panel-purple">
+  <div class="panel-head">
+    <span class="panel-num">06</span>
+    <h2 class="panel-title">WHO'S TALKING? — SOURCE PROFILER</h2>
+    <p class="panel-tag">Consider the messenger: each outlet's tone, track-record proxy & known lean</p>
+  </div>
+  <div class="pundit-reality" id="punditReality"></div>
+  <div class="pundit-grid" id="punditGrid"><div class="loading">Profiling the voices…</div></div>
+  <p class="fineprint">Lean/stance tags are <b>generalizations</b> from public media-bias/reliability aggregators, shown as context — not our judgment of any article.
+    The "track record" is a lightweight proxy: it compares an outlet's recent headline <i>tone</i> to what the price <i>actually did</i> over ~30 days.
+    A bullish outlet isn't wrong for being bullish — but knowing a source is pro-crypto, promotional, or politically slanted helps you weigh its take. Think for yourself.</p>
+</section>
+
+<footer class="foot">
+  <div class="foot-big">HINDSIGHT is 20/20. The future isn't.</div>
+  <p>Built for fun & learning. Live data from CoinGecko, Yahoo Finance, Reddit & Google News.
+     <b>This is NOT financial advice.</b> Don't bet money you can't afford to lose — ideally, don't bet at all.</p>
+</footer>
+
+<!-- big result toast -->
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
