@@ -169,9 +169,19 @@ async function fetchJSON(url, ttlMs = 60000) {
 async function getQuote(asset) {
   if (asset.type === 'crypto') {
     const u = `https://api.coingecko.com/api/v3/simple/price?ids=${asset.id}&vs_currencies=usd&include_24hr_change=true`;
-    const j = await fetchJSON(u, 30000);
-    const row = j[asset.id] || {};
-    return { price: row.usd ?? null, change24h: row.usd_24h_change ?? null, currency: 'USD' };
+    try {
+      const j = await fetchJSON(u, 30000);
+      const row = j[asset.id] || {};
+      if (row.usd != null) return { price: row.usd, change24h: row.usd_24h_change ?? null, currency: 'USD' };
+      throw new Error('no price');
+    } catch (e) {
+      // Live-price endpoint throttled — derive from the (usually cached) daily series.
+      const h = await getHistory(asset, 3);
+      const last = h[h.length - 1], prev = h[h.length - 2];
+      if (!last) throw e;
+      const change = prev ? ((last.price - prev.price) / prev.price) * 100 : null;
+      return { price: last.price, change24h: change, currency: 'USD', derived: true };
+    }
   } else {
     const u = `https://query1.finance.yahoo.com/v8/finance/chart/${asset.id}?range=5d&interval=1d`;
     const j = await fetchJSON(u, 30000);
@@ -663,11 +673,20 @@ const server = http.createServer(async (req, res) => {
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Cache-Control', 'public, max-age=30');
       if (!api[name]) { res.writeHead(404, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ error: 'no such endpoint' })); }
+      const lgKey = 'lastgood:' + url.pathname + '?' + url.searchParams.toString();
       try {
         const data = await api[name](q);
+        cacheSet(lgKey, data, 60 * 60000); // remember the last good answer for 1h
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(data));
       } catch (e) {
+        // If an upstream throttled/failed but we served this successfully before,
+        // return the last-known-good data instead of an error — keeps the UI alive.
+        const lastGood = cacheGet(lgKey);
+        if (lastGood) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ ...lastGood, _stale: true }));
+        }
         const status = e.status || 502;
         res.writeHead(status, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: e.message || 'upstream error' }));
