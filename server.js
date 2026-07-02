@@ -209,9 +209,20 @@ async function getQuote(asset) {
 const CRYPTO_MAX_DAYS = 365;
 async function getHistory(asset, days = 365) {
   if (asset.type === 'crypto') {
-    const u = `https://api.coingecko.com/api/v3/coins/${asset.id}/market_chart?vs_currency=usd&days=${CRYPTO_MAX_DAYS}&interval=daily`;
-    const j = await fetchJSON(u, 5 * 60000);
-    const pts = (j.prices || []).map(([t, price]) => ({ t, price }));
+    let pts = [];
+    // Primary: CoinGecko daily series (up to 365 days on the free tier).
+    try {
+      const u = `https://api.coingecko.com/api/v3/coins/${asset.id}/market_chart?vs_currency=usd&days=${CRYPTO_MAX_DAYS}&interval=daily`;
+      const j = await fetchJSON(u, 5 * 60000);
+      pts = (j.prices || []).map(([t, price]) => ({ t, price }));
+    } catch (e) {
+      // Fallback: Coinbase daily candles (~300 days) when CoinGecko throttles.
+      try {
+        const c = await fetchJSON(`https://api.exchange.coinbase.com/products/${asset.symbol}-USD/candles?granularity=86400`, 5 * 60000);
+        pts = (Array.isArray(c) ? c : []).map(r => ({ t: r[0] * 1000, price: r[4] })).sort((a, b) => a.t - b.t);
+      } catch (e2) { /* both failed */ }
+    }
+    if (!pts.length) throw httpErr(502, 'price history temporarily unavailable');
     const want = Math.min(days, CRYPTO_MAX_DAYS);
     if (want >= CRYPTO_MAX_DAYS) return pts;
     const cutoff = Date.now() - want * 86400000;
@@ -460,6 +471,10 @@ const api = {
       pnl = amount * (returnPct / 100);
       finalValue = amount + pnl;
     }
+    // A short can lose more than the stake (unlimited risk). For a "for Dummies"
+    // tool, flag that so the UI can explain a real wipeout instead of showing
+    // a nonsensical negative balance.
+    const liquidated = direction === 'short' && returnPct <= -100;
 
     // Best & worst moment to have exited, direction-aware.
     // Value of the position at any price p:
@@ -474,7 +489,7 @@ const api = {
     }
 
     return {
-      asset, direction, amount,
+      asset, direction, amount, liquidated,
       requestedDate: dateStr,
       clamped, clampedNote: clamped
         ? `Free ${asset.type} data only reaches back ~${asset.type === 'crypto' ? '1 year' : '5 years'}, so we used the earliest day we had (${new Date(entry.t).toISOString().slice(0, 10)}).`

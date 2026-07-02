@@ -180,8 +180,12 @@ async function runBet(e) {
 function renderBet(r) {
   const win = r.pnl > 0.005 * r.amount, loss = r.pnl < -0.005 * r.amount;
   const cls = win ? 'win' : loss ? 'loss' : 'flat';
-  const verdict = win ? `YOU'D BE UP ${fmtMoney(r.pnl)} 🤑` : loss ? `YOU'D BE DOWN ${fmtMoney(Math.abs(r.pnl))} 😬` : `ROUGHLY BREAK-EVEN 😐`;
+  const verdict = r.liquidated ? `💀 WIPED OUT`
+    : win ? `YOU'D BE UP ${fmtMoney(r.pnl)} 🤑`
+    : loss ? `YOU'D BE DOWN ${fmtMoney(Math.abs(r.pnl))} 😬`
+    : `ROUGHLY BREAK-EVEN 😐`;
   const dirWord = r.direction === 'long' ? 'betting it would rise' : 'betting it would fall (short)';
+  const shownValue = r.liquidated ? 0 : r.finalValue; // never show negative dollars
 
   // mini chart of the actual journey
   const s = r.series.length ? r.series : [{ t: Date.now(), price: r.exit.price }];
@@ -194,13 +198,16 @@ function renderBet(r) {
 
   const clampNote = r.clamped
     ? `<div class="bet-story" style="background:var(--yellow)">⏳ Heads up: ${r.clampedNote}</div>` : '';
+  const liqNote = r.liquidated
+    ? `<div class="bet-story" style="background:var(--red);color:#fff">☠️ A short bet has <b>unlimited risk</b>. ${r.asset.name} rose so much that you'd have lost your entire <b>${fmtMoney(r.amount)}</b> — and a real short position would owe even <b>more</b> (a margin call would've liquidated you).</div>` : '';
   out(`
     <div class="verdict ${cls}">${verdict}</div>
     ${clampNote}
+    ${liqNote}
     <div class="bet-story">
       If you'd put <b>${fmtMoney(r.amount)}</b> on <b>${r.asset.name}</b> ${dirWord} on <b>${r.entry.date}</b>
       (price ${fmtMoney(r.entry.price)}) and held until today (${fmtMoney(r.exit.price)}),
-      your ${fmtMoney(r.amount)} would now be worth <b>${fmtMoney(r.finalValue)}</b> — a return of <b>${fmtPct(r.returnPct)}</b>.
+      your ${fmtMoney(r.amount)} would now be worth <b>${fmtMoney(shownValue)}</b> — a return of <b>${fmtPct(r.returnPct)}</b>.
     </div>
     <div class="bet-lines">
       <div class="bl"><div class="k">Entry (${r.entry.date})</div><div class="v">${fmtMoney(r.entry.price)}</div></div>
