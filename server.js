@@ -416,13 +416,17 @@ const ASSET_ALIASES = {
 };
 
 // Which of our named assets does a headline explicitly mention?
+// Names/aliases match case-insensitively; ticker symbols match CASE-SENSITIVELY
+// on the raw text, otherwise common words hijack tickers ("try" -> TRY lira,
+// "rub" -> RUB ruble, "sol" -> SOL).
 function detectAssets(text) {
-  const t = (text || '').toLowerCase();
+  const raw = text || '';
+  const t = raw.toLowerCase();
   const found = [];
   for (const [sym, a] of Object.entries(ASSETS)) {
     const nm = a.name.toLowerCase();
     const aliases = ASSET_ALIASES[sym] || [];
-    if (t.includes(nm) || new RegExp(`\\b${sym.toLowerCase()}\\b`).test(t) || aliases.some(w => t.includes(w))) found.push(sym);
+    if (t.includes(nm) || new RegExp(`\\b${sym}\\b`).test(raw) || aliases.some(w => t.includes(w))) found.push(sym);
   }
   return found;
 }
@@ -452,7 +456,9 @@ function analyzeHeadline(title) {
     if (!map.has(im.symbol)) map.set(im.symbol, { symbol: im.symbol, score: 0, whys: [] });
     const e = map.get(im.symbol); e.score += im.dir; if (im.why) e.whys.push(im.why);
   }
-  const impacts = [...map.values()].map(e => ({ symbol: e.symbol, dir: Math.sign(e.score), why: [...new Set(e.whys)].join('; ') }));
+  const impacts = [...map.values()]
+    .map(e => ({ symbol: e.symbol, dir: Math.sign(e.score), why: [...new Set(e.whys)].join('; ') }))
+    .filter(e => e.dir !== 0); // opposing rules cancel out -> no net effect, drop the noise
   return { mentioned, topics: [...new Set(topics)], impacts, broad: Math.sign(broad), political, note };
 }
 

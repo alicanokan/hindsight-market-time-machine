@@ -106,8 +106,8 @@ function openCloud(c, cloudEl) {
   document.querySelectorAll('.tree').forEach(tr => tr.classList.remove('watered', 'poisoned'));
   for (const im of c.impacts) {
     const tree = treeEls[im.symbol];
-    if (!tree) continue;
-    tree.classList.add(im.dir > 0 ? 'watered' : im.dir < 0 ? 'poisoned' : '');
+    if (!tree || !im.dir) continue; // dir 0 = no net effect; classList.add('') would throw
+    tree.classList.add(im.dir > 0 ? 'watered' : 'poisoned');
     rainOnTree(tree, im.dir);
   }
   // broad / political: sprinkle the whole forest lightly
