@@ -155,6 +155,8 @@ input[type=date],input[type=number]{font-family:'Space Mono',monospace;font-size
 .forecast-wrap{background:#141420;border:var(--line);border-color:var(--yellow);border-radius:var(--radius);
   padding:18px;overflow:hidden}
 .forecast-chart{width:100%;overflow-x:auto}
+.cone-caption{font-family:'Space Mono',monospace;font-size:11px;opacity:.75;color:#cfcfe0;
+  padding:8px 4px 0;line-height:1.5}
 .catalyst-rail{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
 .cat-pin{background:var(--paper);color:var(--ink);border:3px solid var(--yellow);border-radius:12px;
   padding:8px 12px;min-width:150px;max-width:230px}
@@ -269,13 +271,13 @@ input[type=date],input[type=number]{font-family:'Space Mono',monospace;font-size
    ============================================================ */
 .forest-body{background:linear-gradient(#bfe3ff 0%,#dff3ff 40%,#eaf7e6 70%,#d8efc9 100%);min-height:100vh}
 .forest-intro{max-width:1000px;margin:18px auto 6px;padding:0 24px;font-size:15px}
-.forest-stage{position:relative;max-width:1200px;margin:10px auto 0;height:560px;overflow:hidden;
+.forest-stage{position:relative;max-width:1200px;margin:10px auto 0;height:640px;overflow:hidden;
   border:var(--line);border-radius:22px;box-shadow:var(--shadow);
   background:linear-gradient(#a9dcff 0%,#cdeeff 45%,#e9f7dd 62%,#cdeaa8 100%)}
 .sun{position:absolute;top:18px;right:26px;font-size:44px;filter:drop-shadow(0 0 10px #ffe14d);animation:float 12s ease-in-out infinite}
 
 /* sky + clouds */
-.sky{position:absolute;inset:0;bottom:38%;z-index:2}
+.sky{position:absolute;inset:0;bottom:53%;z-index:2}
 .cloud{position:absolute;border:none;background:none;cursor:pointer;display:flex;flex-direction:column;
   align-items:center;gap:2px;animation:drift linear infinite;transition:transform .15s;z-index:3}
 .cloud:hover{transform:scale(1.15);animation-play-state:paused;z-index:9}
@@ -296,10 +298,14 @@ input[type=date],input[type=number]{font-family:'Space Mono',monospace;font-size
 .lm-label{font-family:'Space Mono',monospace;font-size:10px;text-align:center;background:rgba(13,13,18,.8);
   color:#fff;padding:2px 6px;border-radius:6px;margin-top:-6px}
 
-/* ground + trees */
-.ground{position:absolute;left:0;right:0;bottom:0;height:44%;z-index:4;display:flex;justify-content:space-around;
-  align-items:flex-end;padding:0 12px 10px;background:linear-gradient(#bfe39a,#93cf6b);
-  border-top:4px solid #5c9e3a;border-radius:0 0 18px 18px}
+/* ground + trees — a curved planet horizon with two depth rows (3D look) */
+.ground{position:absolute;left:0;right:0;bottom:0;height:56%;z-index:4;display:flex;flex-direction:column;
+  justify-content:flex-end;padding:0 10px 8px;
+  background:radial-gradient(140% 100% at 50% 0,#cdeaa8 0%,#a8d87e 48%,#7cb757 100%);
+  border-top:4px solid #5c9e3a;border-radius:48% 48% 18px 18px/64px 64px 18px 18px}
+.ground::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:repeating-linear-gradient(180deg,rgba(255,255,255,.10) 0 2px,transparent 2px 24px);
+  transform:perspective(420px) rotateX(38deg);transform-origin:50% 100%}
 .family-plot{display:flex;flex-direction:column;align-items:center;transition:opacity .3s}
 .family-plot.dim{opacity:.28}
 .family-sign{font-family:'Archivo Black',sans-serif;font-size:13px;background:#fff;border:3px solid var(--ink);
@@ -324,18 +330,28 @@ input[type=date],input[type=number]{font-family:'Space Mono',monospace;font-size
 .tree-price{display:block;font-size:10px;opacity:.7;font-weight:400}
 @keyframes sway{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
 
-/* watered / poisoned flashes + rain */
-.tree.watered .canopy{box-shadow:0 0 0 4px #3ddc84}
-.tree.poisoned .canopy{box-shadow:0 0 0 4px #ff4438}
-.tree-fx{position:absolute;top:-6px;left:0;right:0;height:220px;pointer-events:none;z-index:6}
+/* watered / poisoned flashes + COLORED speculation rain
+   green shower = good rain (waters), red shower = bad rain (poisons) */
+.tree.watered .canopy{box-shadow:0 0 0 4px #3ddc84,0 0 22px 6px rgba(61,220,132,.55)}
+.tree.poisoned .canopy{box-shadow:0 0 0 4px #ff4438,0 0 22px 6px rgba(255,68,56,.55)}
+.tree-fx{position:absolute;top:-6px;left:0;right:0;height:220px;pointer-events:none;z-index:6;border-radius:12px}
+.tree-fx.rain-good{background:linear-gradient(rgba(61,220,132,0) 0%,rgba(61,220,132,.16) 35%,rgba(61,220,132,0) 95%)}
+.tree-fx.rain-bad{background:linear-gradient(rgba(255,68,56,0) 0%,rgba(255,68,56,.16) 35%,rgba(255,68,56,0) 95%)}
 .drop{position:absolute;top:0;font-size:18px;animation:fall 1.8s ease-in forwards}
+.drop-streak{position:absolute;top:0;width:4px;height:18px;border-radius:4px;animation:fall 1.4s linear forwards}
+.rain-good .drop-streak{background:linear-gradient(#9be8ff,#25c46b);box-shadow:0 0 6px #3ddc84}
+.rain-bad .drop-streak{background:linear-gradient(#ffb3a8,#e6392b);box-shadow:0 0 6px #ff4438}
+.rain-good .drop{filter:drop-shadow(0 0 5px #3ddc84)}
+.rain-bad .drop{filter:drop-shadow(0 0 5px #ff4438)}
 @keyframes fall{0%{transform:translateY(-10px);opacity:0}15%{opacity:1}100%{transform:translateY(180px);opacity:0}}
 
-/* many families -> let the ground pan horizontally */
-.ground{justify-content:flex-start;gap:26px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;padding-left:16px;padding-right:16px}
-.ground::-webkit-scrollbar{height:8px}
-.ground::-webkit-scrollbar-thumb{background:#5c9e3a;border-radius:8px}
-.family-plot{flex:0 0 auto}
+/* two depth rows: back row shrinks + dims (fake perspective), front row pops.
+   Everything fits the stage — no horizontal panning. */
+.forest-row{display:flex;justify-content:space-evenly;align-items:flex-end;gap:10px;position:relative}
+.row-back{transform:scale(.58);transform-origin:50% 100%;filter:brightness(.86) saturate(.85);
+  margin-bottom:-168px;z-index:1}
+.row-front{transform:scale(.86);transform-origin:50% 100%;z-index:2}
+.family-plot{flex:0 1 auto;min-width:0}
 
 /* per-tree weather (news forecast) */
 .tree-weather{position:absolute;top:-2px;left:50%;transform:translateX(-50%);font-size:18px;opacity:.55;
@@ -406,10 +422,14 @@ input[type=date],input[type=number]{font-family:'Space Mono',monospace;font-size
 .cp-btn:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--ink)}
 
 @media(max-width:700px){
-  .forest-stage{height:480px}
-  .tree{width:48px}.canopy{width:48px;height:48px}
+  .forest-stage{height:540px}
+  .tree{width:44px}.canopy{width:44px;height:44px}
+  .row-back{transform:scale(.48);margin-bottom:-190px}
+  .row-front{transform:scale(.72)}
+  .forest-row{gap:4px}
+  .tree-row{gap:4px}
   .timemachine input[type=range]{width:150px}
-  .family-sign{font-size:11px}
+  .family-sign{font-size:10px;padding:3px 7px}
 }
 
 /* ---- responsive ---- */
@@ -529,4 +549,94 @@ input[type=date],input[type=number]{font-family:'Space Mono',monospace;font-size
 .bets-note{font-family:'Space Mono',monospace;font-size:11px;opacity:.65;margin-top:8px}
 
 /* hidden must win over display:flex */
-.tour[hidden],.bets-strip[hidden],.story-banner[hidden],.stale-badge[hidden]{display:none}
+.tour[hidden],.bets-strip[hidden],.story-banner[hidden],.stale-badge[hidden],.guess-strip[hidden]{display:none}
+
+/* 🎓 engine training scoreboard */
+.tr-status{display:flex;flex-direction:column;gap:4px;font-family:'Space Mono',monospace;font-size:12.5px;
+  background:#141420;border:3px solid var(--yellow);border-radius:14px;padding:12px 16px;margin-bottom:16px}
+.tr-status-big{font-size:14px}
+.tr-status b{color:var(--yellow)}
+.tr-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.tr-card{background:#141420;border:3px solid #2a2a3a;border-radius:14px;padding:14px}
+.tr-card.tr-good{border-color:#3ddc84}
+.tr-card.tr-mid{border-color:var(--yellow)}
+.tr-card.tr-bad{border-color:#ff4438}
+.tr-hz{font-family:'Archivo Black',sans-serif;font-size:13px;text-transform:uppercase;opacity:.85}
+.tr-rate{font-family:'Archivo Black',sans-serif;font-size:38px;line-height:1.2;margin:4px 0}
+.tr-good .tr-rate{color:#3ddc84}.tr-mid .tr-rate{color:var(--yellow)}.tr-bad .tr-rate{color:#ff4438}
+.tr-none .tr-rate{opacity:.4}
+.tr-meta{font-family:'Space Mono',monospace;font-size:11px;opacity:.7;line-height:1.5}
+.tr-daily{display:flex;gap:8px;align-items:flex-end;margin-top:6px;flex-wrap:wrap}
+.tr-day{display:flex;flex-direction:column;align-items:center;gap:3px;font-family:'Space Mono',monospace;font-size:10px;opacity:.85}
+.tr-bar{width:22px;border-radius:4px 4px 0 0;border:2px solid var(--ink)}
+.tr-bar.up{background:#3ddc84}.tr-bar.down{background:#ff4438}
+.tr-weights{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:16px}
+.tr-chip{display:inline-block;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;background:#141420;
+  border:2px solid var(--yellow);border-radius:100px;padding:4px 11px;margin:3px 4px 0 0}
+.tr-chip-dim{opacity:.5;border-color:#2a2a3a}
+
+/* 🎯 my first $10 — beginner guessing game */
+.guess-strip{max-width:1200px;margin:10px auto 0;padding:14px 18px;background:var(--green);
+  border:var(--line);border-radius:16px;box-shadow:var(--shadow-sm)}
+.guess-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.guess-title{font-family:'Archivo Black',sans-serif;font-size:16px}
+.guess-wallet{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;background:#fff;
+  border:3px solid var(--ink);border-radius:100px;padding:4px 12px}
+.gw-live{opacity:.75;font-size:11px}
+.gw-goal{opacity:.6;font-size:11px}
+.guess-sub{font-size:13.5px;margin:8px 0 10px;max-width:760px}
+.guess-card{background:#fff;border:3px solid var(--ink);border-radius:14px;padding:14px;
+  box-shadow:3px 3px 0 var(--ink)}
+.guess-text{font-size:15px;line-height:1.45}
+.guess-why{font-size:12.5px;opacity:.75;margin-top:6px}
+.guess-stakes{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;margin:10px 0;
+  display:flex;align-items:center;gap:6px}
+.gs-btn:disabled{opacity:.4;cursor:default}
+.guess-actions{display:flex;gap:12px;flex-wrap:wrap}
+.guess-choice{flex:1;min-width:220px;display:flex;flex-direction:column;gap:4px}
+.guess-btn{width:100%;font-size:14px;padding:12px}
+.guess-may{font-family:'Space Mono',monospace;font-size:11px;opacity:.8;line-height:1.4}
+.guess-tools{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.guess-peek-out{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.peek-line{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;background:var(--paper);
+  border:2px solid var(--ink);border-radius:8px;padding:4px 9px;animation:simPop .25s ease-out}
+.guess-broke{font-size:15px;font-weight:500;background:#fff;border:3px solid var(--ink);border-radius:14px;
+  padding:16px;line-height:1.6}
+.guess-broke .cp-btn{margin-top:10px}
+
+/* ⚡ cloud casino */
+.hud-btn-sim{background:var(--yellow)}
+.sim-bank{display:flex;align-items:center;gap:10px;padding:10px 12px;flex-wrap:wrap;
+  font-family:'Space Mono',monospace;font-weight:700;font-size:13px}
+.sim-bank input{font-family:'Space Mono',monospace;font-weight:700;font-size:16px;width:130px;
+  padding:8px 10px;border:3px solid var(--ink);border-radius:10px;background:#fff}
+.sim-reset{padding:7px 10px;font-size:11px}
+.sim-pick-h{font-family:'Space Grotesk',sans-serif;font-size:13px;padding:2px 12px 8px;opacity:.85}
+.sim-clouds{display:flex;flex-wrap:wrap;gap:8px;padding:0 12px 12px}
+.sim-cloud{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;
+  background:#fff;border:3px solid var(--ink);border-radius:12px;padding:8px 10px;cursor:pointer;
+  font-family:'Space Grotesk',sans-serif;font-size:12px;max-width:240px;transition:transform .1s}
+.sim-cloud:hover{transform:translateY(-2px)}
+.sim-cloud.on{background:var(--yellow);box-shadow:3px 3px 0 var(--ink)}
+.sim-cloud-t{font-size:10.5px;opacity:.65;line-height:1.25}
+.sim-run{display:block;margin:0 12px 12px;width:calc(100% - 24px);font-size:15px;padding:13px}
+.sim-out{padding:0 12px}
+.sim-warn{font-weight:700;padding:6px 2px}
+.sim-rounds{display:flex;flex-direction:column;gap:4px}
+.sim-round{font-family:'Space Mono',monospace;font-size:13px;background:#fff;border:2px solid var(--ink);
+  border-radius:8px;padding:5px 10px;animation:simPop .25s ease-out}
+.sim-round.up{background:#d8f7e4}.sim-round.down{background:#ffe3df}
+.sim-round span{opacity:.6;font-size:11px}
+.sim-total{font-family:'Archivo Black',sans-serif;font-size:16px;margin:10px 0}
+.sim-total .up{color:#1c7a45}.sim-total .down{color:#b3271c}
+@keyframes simPop{0%{transform:scale(.85);opacity:0}100%{transform:scale(1);opacity:1}}
+
+/* horizon picker + luck note + countdown */
+.bets-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.hz-picker{display:flex;gap:6px}
+.hz-btn{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;background:#fff;
+  border:2px solid var(--ink);border-radius:100px;padding:4px 10px;cursor:pointer}
+.hz-btn.active{background:var(--ink);color:var(--paper)}
+.play-luck{font-family:'Space Mono',monospace;font-size:10.5px;background:#fff3c4;
+  border:2px dashed var(--ink);border-radius:8px;padding:4px 8px}
+.sr-count{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:#5a3fb0}

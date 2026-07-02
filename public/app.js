@@ -83,15 +83,24 @@ async function loadForecast() {
     if (!past.length) { box.innerHTML = '<div class="loading">No data.</div>'; return; }
 
     const nowT = past[past.length - 1].t;
+    const b = cone && cone.bands; // new quantile fan (older cached servers: fall back to the triple)
     const all = [...past];
-    if (cone) all.push(...cone.paths.bull, ...cone.paths.bear, ...cone.paths.base);
+    if (cone) {
+      if (b) all.push(...b.p95, ...b.p05);
+      else all.push(...cone.paths.bull, ...cone.paths.bear);
+      for (const s of (cone.samples || [])) all.push(...s);
+    }
     const W = Math.max(760, past.length * 4 + 300), H = 360, pad = { l: 62, r: 20, t: 22, b: 34 };
     const sc = buildScales(all, W, H, pad);
 
-    const coneStartPt = { t: nowT, price: past[past.length - 1].price };
-    const bull = cone ? [coneStartPt, ...cone.paths.bull] : [];
-    const bear = cone ? [coneStartPt, ...cone.paths.bear] : [];
-    const base = cone ? [coneStartPt, ...cone.paths.base] : [];
+    const start = { t: nowT, price: past[past.length - 1].price };
+    const wrap = a => [start, ...a];
+    const p95 = cone ? wrap(b ? b.p95 : cone.paths.bull) : [];
+    const p75 = b ? wrap(b.p75) : [];
+    const p50 = cone ? wrap(b ? b.p50 : cone.paths.base) : [];
+    const p25 = b ? wrap(b.p25) : [];
+    const p05 = cone ? wrap(b ? b.p05 : cone.paths.bear) : [];
+    const samples = cone ? (cone.samples || []).map(wrap) : [];
 
     const nowX = sc.x(nowT);
     const gridY = [0, .25, .5, .75, 1].map(f2 => {
@@ -100,29 +109,38 @@ async function loadForecast() {
               <text class="axis-label" x="6" y="${sc.y(price) + 4}">${fmtMoney(price)}</text>`;
     }).join('');
 
+    const endLabel = (pts, color, tag, dy) => pts.length
+      ? `<text class="axis-label" text-anchor="end" fill="${color}" x="${sc.x(pts[pts.length - 1].t) - 6}" y="${sc.y(pts[pts.length - 1].price) + dy}">${tag} ${fmtMoney(pts[pts.length - 1].price)}</text>` : '';
+
     box.innerHTML = `
     <svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Possibility timeline">
       <defs>
         <linearGradient id="coneG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#3ddc84" stop-opacity="0.55"/>
-          <stop offset="1" stop-color="#ff5da2" stop-opacity="0.35"/>
+          <stop offset="0" stop-color="#3ddc84" stop-opacity="0.30"/>
+          <stop offset="1" stop-color="#ff5da2" stop-opacity="0.20"/>
+        </linearGradient>
+        <linearGradient id="coneInner" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#3ddc84" stop-opacity="0.42"/>
+          <stop offset="1" stop-color="#ff5da2" stop-opacity="0.30"/>
         </linearGradient>
       </defs>
       ${gridY}
-      ${cone ? `<path d="${areaPath(bull, bear, sc)}" fill="url(#coneG)" stroke="none"/>` : ''}
+      ${cone ? `<path d="${areaPath(p95, p05, sc)}" fill="url(#coneG)" stroke="none"/>` : ''}
+      ${p75.length ? `<path d="${areaPath(p75, p25, sc)}" fill="url(#coneInner)" stroke="none"/>` : ''}
+      ${samples.map(s => `<path d="${linePath(s, sc)}" fill="none" stroke="rgba(255,255,255,.30)" stroke-width="1.2"/>`).join('')}
       <path d="${linePath(past, sc)}" fill="none" stroke="#ffe14d" stroke-width="3"/>
-      ${cone ? `<path d="${linePath(bull, sc)}" fill="none" stroke="#3ddc84" stroke-width="2.5" stroke-dasharray="2 4"/>
-                <path d="${linePath(base, sc)}" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="6 5"/>
-                <path d="${linePath(bear, sc)}" fill="none" stroke="#ff4438" stroke-width="2.5" stroke-dasharray="2 4"/>` : ''}
+      ${cone ? `<path d="${linePath(p95, sc)}" fill="none" stroke="#3ddc84" stroke-width="2" stroke-dasharray="2 4"/>
+                <path d="${linePath(p50, sc)}" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="6 5"/>
+                <path d="${linePath(p05, sc)}" fill="none" stroke="#ff4438" stroke-width="2" stroke-dasharray="2 4"/>` : ''}
       <line class="now-line" x1="${nowX}" x2="${nowX}" y1="${pad.t}" y2="${H - pad.b}"/>
       <text class="now-tag" x="${nowX + 6}" y="${pad.t + 12}">NOW</text>
       <text class="axis-label" x="${pad.l}" y="${H - 8}">◀ real past</text>
       <text class="axis-label" x="${W - 150}" y="${H - 8}">possible futures ▶</text>
-      ${cone ? `
-        <text class="axis-label" fill="#3ddc84" x="${sc.x(bull[bull.length-1].t) - 30}" y="${sc.y(bull[bull.length-1].price) - 4}">🐂 ${fmtMoney(cone.endpoints.bull)}</text>
-        <text class="axis-label" fill="#fff" x="${sc.x(base[base.length-1].t) - 30}" y="${sc.y(base[base.length-1].price) + 4}">➖ ${fmtMoney(cone.endpoints.base)}</text>
-        <text class="axis-label" fill="#ff4438" x="${sc.x(bear[bear.length-1].t) - 30}" y="${sc.y(bear[bear.length-1].price) + 14}">🐻 ${fmtMoney(cone.endpoints.bear)}</text>` : ''}
-    </svg>`;
+      ${endLabel(p95, '#3ddc84', '🐂 5% end above', -4)}
+      ${endLabel(p50, '#fff', '➖ median', 4)}
+      ${endLabel(p05, '#ff4438', '🐻 5% end below', 14)}
+    </svg>
+    ${cone ? `<div class="cone-caption">Shaded fan = 90% of statistical futures (inner band = 50%) · thin white squiggles = sample futures replayed from this asset's own past moves · vol ${cone.dailyVolPct}%/day${cone.annualVolPct ? ` (~${cone.annualVolPct}%/yr)` : ''}${cone.tailNote ? ' · ' + cone.tailNote : ''}</div>` : ''}`;
 
     // catalysts
     const pins = [];
@@ -131,7 +149,7 @@ async function loadForecast() {
     }
     for (const c of f.catalysts) pins.push(pin(c.label, c.kind, c.note));
     rail.innerHTML = pins.join('');
-    if (cone) toast(`Possibility cone built from ${cone.dailyVolPct}% daily volatility`);
+    if (cone) toast(`Possibility cone: ${cone.dailyVolPct}%/day volatility${cone.annualVolPct ? ` (~${cone.annualVolPct}%/yr)` : ''}, drift shrunk toward zero — honest, not hopeful`);
   } catch (e) { box.innerHTML = `<div class="loading">⚠ ${e.message}</div>`; }
 }
 function pin(title, kind, note) {
@@ -198,11 +216,14 @@ function renderBet(r) {
 
   const clampNote = r.clamped
     ? `<div class="bet-story" style="background:var(--yellow)">⏳ Heads up: ${r.clampedNote}</div>` : '';
+  const approxNote = r.approx
+    ? `<div class="bet-story" style="background:var(--yellow)">📜 ${r.approxNote}</div>` : '';
   const liqNote = r.liquidated
     ? `<div class="bet-story" style="background:var(--red);color:#fff">☠️ A short bet has <b>unlimited risk</b>. ${r.asset.name} rose so much that you'd have lost your entire <b>${fmtMoney(r.amount)}</b> — and a real short position would owe even <b>more</b> (a margin call would've liquidated you).</div>` : '';
   out(`
     <div class="verdict ${cls}">${verdict}</div>
     ${clampNote}
+    ${approxNote}
     ${liqNote}
     <div class="bet-story">
       If you'd put <b>${fmtMoney(r.amount)}</b> on <b>${r.asset.name}</b> ${dirWord} on <b>${r.entry.date}</b>
@@ -353,6 +374,47 @@ function leanToClass(lean = '') {
   return 'lean-unknown';
 }
 
+/* -------------------------------------------------- 🎓 engine training board */
+async function loadTraining() {
+  const box = $('#trainingBox');
+  if (!box) return;
+  try {
+    const s = await api('training', {});
+    const grade = r => r == null ? 'tr-none' : r >= 55 ? 'tr-good' : r >= 50 ? 'tr-mid' : 'tr-bad';
+    const cards = Object.entries(s.byHorizon).map(([hz, h]) => {
+      const rate = h.hitRate;
+      const nextIn = h.nextDue ? Math.max(0, Math.round((h.nextDue - Date.now()) / 3600000)) : null;
+      return `<div class="tr-card ${grade(rate)}">
+        <div class="tr-hz">${hz}-day guesses</div>
+        <div class="tr-rate">${rate == null ? '—' : rate + '%'}</div>
+        <div class="tr-meta">${h.n ? `${h.n} graded · coin flip 50% · always-up ${h.alwaysUpRate}%` : 'no guesses graded yet'}</div>
+        ${h.recentRate != null ? `<div class="tr-meta">last 3 days: <b>${h.recentRate}%</b></div>` : ''}
+        ${h.avgErr != null ? `<div class="tr-meta">avg size miss ±${h.avgErr}%</div>` : ''}
+        ${rate == null && nextIn != null ? `<div class="tr-meta">first grade in ~${nextIn}h</div>` : ''}
+      </div>`;
+    }).join('');
+    const daily = s.daily.length ? `<div class="tr-daily">${s.daily.map(d =>
+      `<div class="tr-day" title="${d.date}: ${d.hits}/${d.n} correct">
+        <div class="tr-bar ${d.rate >= 50 ? 'up' : 'down'}" style="height:${Math.max(8, d.rate * 0.5)}px"></div>
+        <span>${d.rate}%</span>
+      </div>`).join('')}</div>` : '';
+    const chips = w => w.map(x => `<span class="tr-chip">${escapeHtml(x.topic)} ×${x.w}</span>`).join('') || '<span class="tr-chip tr-chip-dim">nothing yet — still learning</span>';
+    box.innerHTML = `
+      <div class="tr-status">
+        <span class="tr-status-big">📅 Training day <b>${s.day}</b>${s.day < s.targetDays ? ` of first ${s.targetDays}` : ' — beyond the first 10, still learning'}</span>
+        <span>🎯 ${s.total} guesses on record · ${s.evaluated} graded · ${s.pending} waiting for their deadline</span>
+        <span>🌍 covering ${s.assets} assets, from the lira to the biggest stocks · next guess batch in ~${s.nextBatchInMin} min</span>
+      </div>
+      <div class="tr-cards">${cards}</div>
+      ${daily ? `<h3 class="mini-h" style="margin-top:14px">📈 DAILY ACCURACY (last 2 weeks)</h3>${daily}` : ''}
+      <div class="tr-weights">
+        <div><h3 class="mini-h">✅ WHAT IT LEARNED TO TRUST</h3>${chips(s.weights.trusted)}</div>
+        <div><h3 class="mini-h">❌ WHAT IT LEARNED TO DOUBT</h3>${chips(s.weights.doubted)}</div>
+        <div><h3 class="mini-h">🌀 MOMENTUM SIGNAL WEIGHT</h3><span class="tr-chip">×${s.weights.momentum}</span></div>
+      </div>`;
+  } catch (e) { box.innerHTML = `<div class="loading">⚠ ${e.message}</div>`; }
+}
+
 /* -------------------------------------------------- utils + boot */
 function escapeHtml(s = '') { return s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
@@ -369,4 +431,6 @@ function refreshAll() {
   await loadAssets();
   $('#betAsset').textContent = currentAsset().name;
   refreshAll();
+  loadTraining();
+  setInterval(loadTraining, 5 * 60000); // scoreboard stays live
 })();

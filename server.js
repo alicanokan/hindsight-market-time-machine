@@ -240,9 +240,74 @@ async function getQuote(asset) {
 // Returns normalized array [{ t: ms, price }] oldest -> newest.
 // CoinGecko's free tier caps history at 365 days, so we always pull the full
 // 365-day series (one stable cache key -> avoids rate limits) and slice locally.
+// For DEEP past (time-machine bets in 2012 etc.) we switch to Yahoo Finance,
+// which carries BTC-USD back to Sep 2014 for free — and before that, a table
+// of well-documented monthly BTC prices (log-interpolated to weekly points).
 const CRYPTO_MAX_DAYS = 365;
+const YAHOO_CRYPTO = { BTC: 'BTC-USD', ETH: 'ETH-USD', SOL: 'SOL-USD', DOGE: 'DOGE-USD' };
+
+// Bitcoin's documented early history (month-start USD, 2010-07 → 2014-09,
+// approximate — from public historical price records).
+const BTC_EARLY_ANCHORS = [
+  ['2010-07', 0.05], ['2010-08', 0.06], ['2010-09', 0.06], ['2010-10', 0.06], ['2010-11', 0.29], ['2010-12', 0.25],
+  ['2011-01', 0.30], ['2011-02', 0.70], ['2011-03', 0.90], ['2011-04', 0.78], ['2011-05', 3.50], ['2011-06', 9.60],
+  ['2011-07', 15.40], ['2011-08', 11.00], ['2011-09', 8.20], ['2011-10', 4.90], ['2011-11', 3.20], ['2011-12', 3.00],
+  ['2012-01', 5.28], ['2012-02', 5.90], ['2012-03', 4.90], ['2012-04', 4.90], ['2012-05', 5.10], ['2012-06', 5.30],
+  ['2012-07', 6.70], ['2012-08', 9.40], ['2012-09', 10.20], ['2012-10', 12.40], ['2012-11', 10.90], ['2012-12', 12.60],
+  ['2013-01', 13.30], ['2013-02', 20.40], ['2013-03', 34.50], ['2013-04', 104], ['2013-05', 116], ['2013-06', 129],
+  ['2013-07', 88], ['2013-08', 104], ['2013-09', 141], ['2013-10', 132], ['2013-11', 213], ['2013-12', 946],
+  ['2014-01', 754], ['2014-02', 800], ['2014-03', 565], ['2014-04', 458], ['2014-05', 446], ['2014-06', 627],
+  ['2014-07', 641], ['2014-08', 589], ['2014-09', 478],
+];
+// Expand the monthly anchors to weekly points (log-interpolated) once at boot.
+const BTC_EARLY = (() => {
+  const out = [];
+  for (let i = 0; i < BTC_EARLY_ANCHORS.length - 1; i++) {
+    const [m0, p0] = BTC_EARLY_ANCHORS[i], [m1, p1] = BTC_EARLY_ANCHORS[i + 1];
+    const t0 = new Date(m0 + '-01T00:00:00Z').getTime(), t1 = new Date(m1 + '-01T00:00:00Z').getTime();
+    for (let t = t0; t < t1; t += 7 * 86400000) {
+      const k = (t - t0) / (t1 - t0);
+      out.push({ t, price: +(Math.exp(Math.log(p0) + k * (Math.log(p1) - Math.log(p0)))).toFixed(4), approx: true });
+    }
+  }
+  return out;
+})();
+const BTC_EARLY_END = BTC_EARLY[BTC_EARLY.length - 1].t;
+
+// Deep-history fetch via Yahoo (crypto only). Falls back to null on failure.
+async function getDeepCryptoHistory(asset, days) {
+  const yid = YAHOO_CRYPTO[asset.symbol];
+  if (!yid) return null;
+  try {
+    const range = days <= 730 ? '2y' : days <= 1825 ? '5y' : days <= 3650 ? '10y' : 'max';
+    const interval = range === 'max' ? '1wk' : '1d'; // Yahoo degrades range=max silently — ask for weekly explicitly
+    const u = `https://query1.finance.yahoo.com/v8/finance/chart/${yid}?range=${range}&interval=${interval}`;
+    const j = await fetchJSON(u, 30 * 60000);
+    const r = j.chart?.result?.[0];
+    const ts = r?.timestamp || [];
+    const closes = r?.indicators?.quote?.[0]?.close || [];
+    const pts = [];
+    for (let i = 0; i < ts.length; i++) if (closes[i] != null) pts.push({ t: ts[i] * 1000, price: closes[i] });
+    if (!pts.length) return null;
+    // Before Yahoo's coverage begins, splice in the documented early-BTC record.
+    if (asset.symbol === 'BTC' && days * 86400000 > Date.now() - BTC_EARLY_END) {
+      const yahooStart = pts[0].t;
+      return [...BTC_EARLY.filter(p => p.t < yahooStart), ...pts];
+    }
+    return pts;
+  } catch (e) { return null; }
+}
+
 async function getHistory(asset, days = 365) {
   if (asset.type === 'crypto') {
+    // deep past requested? Yahoo reaches years further back than CoinGecko free
+    if (days > CRYPTO_MAX_DAYS) {
+      const deep = await getDeepCryptoHistory(asset, days);
+      if (deep && deep.length) {
+        const cutoff = Date.now() - days * 86400000;
+        return maybeInvert(asset, deep.filter(p => p.t >= cutoff));
+      }
+    }
     let pts = [];
     // Primary: CoinGecko daily series (up to 365 days on the free tier).
     try {
@@ -265,8 +330,9 @@ async function getHistory(asset, days = 365) {
     return maybeInvert(asset, pts);
   } else {
     const range = days <= 5 ? '5d' : days <= 30 ? '1mo' : days <= 90 ? '3mo' : days <= 180 ? '6mo'
-      : days <= 365 ? '1y' : days <= 730 ? '2y' : '5y';
-    const u = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(asset.id)}?range=${range}&interval=1d`;
+      : days <= 365 ? '1y' : days <= 730 ? '2y' : days <= 1825 ? '5y' : days <= 3650 ? '10y' : 'max';
+    const interval = range === 'max' ? '1wk' : '1d';
+    const u = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(asset.id)}?range=${range}&interval=${interval}`;
     const j = await fetchJSON(u, 5 * 60000);
     const r = j.chart?.result?.[0];
     const ts = r?.timestamp || [];
@@ -525,36 +591,79 @@ function nearestPriceAt(history, targetMs) {
 /* Possibility cone — statistical projection from real volatility             */
 /* Clearly an illustration of *possibilities*, not a prediction.              */
 /* -------------------------------------------------------------------------- */
-function projectCone(history, horizonDays = 60, steps = 12) {
-  const prices = history.map(p => p.price).filter(Boolean);
-  if (prices.length < 5) return null;
-  const rets = [];
-  for (let i = 1; i < prices.length; i++) rets.push(Math.log(prices[i] / prices[i - 1]));
-  const mean = rets.reduce((a, b) => a + b, 0) / rets.length;
-  const variance = rets.reduce((a, b) => a + (b - mean) ** 2, 0) / rets.length;
-  const std = Math.sqrt(variance);
-  const last = prices[prices.length - 1];
-  const lastT = history[history.length - 1].t;
+/* Realism, in order of what usually goes wrong with naive cones:
+   - step size read from timestamps (no "one point = one day" guess)
+   - EWMA volatility (RiskMetrics λ=0.94/day) — recent storms weigh more
+   - drift shrunk 75% toward zero — extrapolating 6 months of trend is
+     how forecasts lie; the honest base case is "roughly sideways"
+   - lognormal drift correction (−σ²/2) so the median is a real median
+   - fat tails: outer band stretched by the sample's excess kurtosis
+   - a quantile FAN (5/25/50/75/95%) instead of one ±1.28σ wedge
+   - bootstrap sample futures: the asset's own past returns resampled,
+     so the wiggles look like THIS asset — jumps and all               */
+function projectCone(history, horizonDays = 60, steps = 24) {
+  const pts = history.filter(p => p && p.price);
+  if (pts.length < 10) return null;
   const dayMs = 86400000;
-  const paths = { bull: [], base: [], bear: [] };
+  const stepDays = Math.max(1 / 24, (pts[pts.length - 1].t - pts[0].t) / ((pts.length - 1) * dayMs));
+  const rets = [];
+  for (let i = 1; i < pts.length; i++) rets.push(Math.log(pts[i].price / pts[i - 1].price));
+  const mean = rets.reduce((a, b) => a + b, 0) / rets.length;
+
+  const lambda = Math.pow(0.94, stepDays);
+  let ewVar = rets[0] ** 2;
+  for (let i = 1; i < rets.length; i++) ewVar = lambda * ewVar + (1 - lambda) * rets[i] ** 2;
+  const dailyVol = Math.sqrt(ewVar / stepDays);
+
+  const varSimple = rets.reduce((a, b) => a + (b - mean) ** 2, 0) / rets.length || 1e-12;
+  const kurt = rets.reduce((a, b) => a + (b - mean) ** 4, 0) / (rets.length * varSimple ** 2) - 3;
+  const tailStretch = Math.min(1.35, Math.max(1, 1 + kurt / 24));
+
+  const dailyDrift = (mean / stepDays) * 0.25;
+  const last = pts[pts.length - 1].price;
+  const lastT = pts[pts.length - 1].t;
+
+  const zOuter = 1.645 * tailStretch, zInner = 0.674;
+  const bands = { p95: [], p75: [], p50: [], p25: [], p05: [] };
   for (let s = 1; s <= steps; s++) {
     const h = (horizonDays / steps) * s;
-    const drift = mean * h;
-    const band = std * Math.sqrt(h);
+    const drift = (dailyDrift - dailyVol ** 2 / 2) * h;
+    const sd = dailyVol * Math.sqrt(h);
     const t = lastT + h * dayMs;
-    paths.bull.push({ t, price: last * Math.exp(drift + 1.28 * band) });
-    paths.base.push({ t, price: last * Math.exp(drift) });
-    paths.bear.push({ t, price: last * Math.exp(drift - 1.28 * band) });
+    bands.p95.push({ t, price: last * Math.exp(drift + zOuter * sd) });
+    bands.p75.push({ t, price: last * Math.exp(drift + zInner * sd) });
+    bands.p50.push({ t, price: last * Math.exp(drift) });
+    bands.p25.push({ t, price: last * Math.exp(drift - zInner * sd) });
+    bands.p05.push({ t, price: last * Math.exp(drift - zOuter * sd) });
   }
+
+  const samples = [];
+  const nSteps = 60, dt = horizonDays / nSteps, scale = Math.sqrt(dt / stepDays);
+  for (let k = 0; k < 5; k++) {
+    let p = last;
+    const path = [];
+    for (let s = 1; s <= nSteps; s++) {
+      const r = rets[Math.floor(Math.random() * rets.length)];
+      p *= Math.exp((r - mean) * scale + dailyDrift * dt);
+      path.push({ t: lastT + s * dt * dayMs, price: p });
+    }
+    samples.push(path);
+  }
+
   return {
     horizonDays,
-    dailyVolPct: +(std * 100).toFixed(2),
+    dailyVolPct: +(dailyVol * 100).toFixed(2),
+    annualVolPct: +(dailyVol * Math.sqrt(365) * 100).toFixed(0),
+    tailNote: kurt > 1 ? 'fat-tailed asset — outer band stretched to match its jump history' : null,
     endpoints: {
-      bull: paths.bull[paths.bull.length - 1].price,
-      base: paths.base[paths.base.length - 1].price,
-      bear: paths.bear[paths.bear.length - 1].price,
+      bull: bands.p95[bands.p95.length - 1].price,
+      base: bands.p50[bands.p50.length - 1].price,
+      bear: bands.p05[bands.p05.length - 1].price,
     },
-    paths,
+    // legacy triple kept so older clients keep working
+    paths: { bull: bands.p95, base: bands.p50, bear: bands.p05 },
+    bands,
+    samples,
   };
 }
 
@@ -601,7 +710,7 @@ const api = {
   async history(q) {
     const asset = resolveAsset(q.symbol);
     if (!asset) throw httpErr(400, 'Unknown symbol');
-    const days = Math.max(2, Math.min(1825, parseInt(q.days || '365', 10)));
+    const days = Math.max(2, Math.min(6500, parseInt(q.days || '365', 10)));
     const history = await getHistory(asset, days);
     return { asset, days, points: history };
   },
@@ -616,8 +725,8 @@ const api = {
     const targetMs = new Date(dateStr + 'T00:00:00Z').getTime();
     if (isNaN(targetMs)) throw httpErr(400, 'Bad date');
 
-    // pull enough history to cover the chosen date
-    const days = Math.min(1825, Math.max(30, Math.ceil((Date.now() - targetMs) / 86400000) + 5));
+    // pull enough history to cover the chosen date (BTC reaches back to 2010)
+    const days = Math.min(6500, Math.max(30, Math.ceil((Date.now() - targetMs) / 86400000) + 5));
     const history = await getHistory(asset, days);
     if (!history.length) throw httpErr(502, 'No history available');
 
@@ -628,6 +737,7 @@ const api = {
     // Did the requested date fall before the data we can get for free?
     const clampedDays = Math.round((entry.t - targetMs) / 86400000);
     const clamped = clampedDays > 8; // more than ~a week off = we hit the data floor
+    const approx = !!entry.approx; // pre-2014 BTC uses the documented monthly record
 
     const grossMult = exit.price / entry.price;
     let pnl, finalValue, returnPct;
@@ -662,7 +772,10 @@ const api = {
       asset, direction, amount, liquidated,
       requestedDate: dateStr,
       clamped, clampedNote: clamped
-        ? `Free ${asset.type} data only reaches back ~${asset.type === 'crypto' ? '1 year' : '5 years'}, so we used the earliest day we had (${new Date(entry.t).toISOString().slice(0, 10)}).`
+        ? `Free data for ${asset.name} only reaches back to ${new Date(history[0].t).toISOString().slice(0, 10)}, so we used the earliest day we had (${new Date(entry.t).toISOString().slice(0, 10)}).`
+        : null,
+      approx, approxNote: approx
+        ? 'Entry price comes from Bitcoin\'s documented early history (pre-Sep-2014) — monthly records, so it\'s approximate within the month.'
         : null,
       entry: { date: new Date(entry.t).toISOString().slice(0, 10), price: entry.price },
       exit: { date: new Date(exit.t).toISOString().slice(0, 10), price: exit.price },
@@ -892,7 +1005,9 @@ const api = {
     const drivers = {};
     for (const c of clouds) {
       for (const im of c.impacts) {
-        climate[im.symbol] = (climate[im.symbol] || 0) + im.dir;
+        // learned weights: topics/assets the engine has verified get more say
+        const w = topicW(c.topics[0] || '') * symbolW(im.symbol);
+        climate[im.symbol] = (climate[im.symbol] || 0) + im.dir * w;
         (drivers[im.symbol] = drivers[im.symbol] || []).push({ dir: im.dir, why: im.why, topic: c.topics[0] || '', title: c.title });
       }
     }
@@ -918,7 +1033,7 @@ const api = {
       const momentum = wk ? (last / wk - 1) : 0;                   // recent trend
       const specific = climate[t.symbol] || 0;
       const newsPressure = clamp(specific / 4 + broadMood * 0.6, -1.2, 1.2);
-      const outlook = clamp(tanh(newsPressure * 1.0 + momentum * 2.0), -1, 1);
+      const outlook = clamp(tanh(newsPressure * 1.0 + momentum * 2.0 * momentumW()), -1, 1);
       const drift = outlook * band * 0.8;
       const pctOf = x => +((Math.exp(x) - 1) * 100).toFixed(1);
       const weather = outlook > 0.45 ? '☀️' : outlook > 0.15 ? '🌤️' : outlook > -0.15 ? '⛅' : outlook > -0.45 ? '🌧️' : '⛈️';
@@ -1094,6 +1209,181 @@ async function topicCalibration() {
   return out;
 }
 
+/* ============================================================================ */
+/* 🎓 SPECULATION ENGINE — a self-training prediction ledger                    */
+/*                                                                              */
+/* Loop: every ~6h the engine snapshots its news-driven forecast for EVERY      */
+/* asset at 1/3/5/10-day horizons (a "guess"). When a guess comes due, it is    */
+/* scored against the REAL price. Every hit/miss nudges the weights of the      */
+/* news topics, assets and momentum signal that produced it — so tomorrow's     */
+/* forecasts lean harder on what has actually worked. All of it is persisted    */
+/* to disk and exposed at /api/training for the scoreboard.                     */
+/*                                                                              */
+/* Honesty contract: direction accuracy ~55-60% would already be exceptional;   */
+/* the scoreboard always shows the coin-flip and always-up baselines so skill   */
+/* can't be faked by a bull market.                                             */
+/* ============================================================================ */
+const ENGINE_DIR = path.join(__dirname, 'data');
+const ENGINE_FILE = path.join(ENGINE_DIR, 'engine.json');
+const ENGINE_HORIZONS = [1, 3, 5, 10];
+const BATCH_EVERY = 6 * 3600000; // one guess batch per ~6h (4/day)
+
+function engineDefaults() {
+  return { startedAt: null, lastBatchTs: 0, preds: [], daily: {},
+           weights: { topics: {}, symbols: {}, momentum: 1 } };
+}
+function loadEngine() {
+  try {
+    const j = JSON.parse(fs.readFileSync(ENGINE_FILE, 'utf8'));
+    return Object.assign(engineDefaults(), j, { weights: Object.assign(engineDefaults().weights, j.weights) });
+  } catch (e) { return engineDefaults(); }
+}
+const ENGINE = loadEngine();
+
+let engineSaveTimer = null;
+function saveEngine() {
+  if (engineSaveTimer) return;
+  engineSaveTimer = setTimeout(() => {
+    engineSaveTimer = null;
+    try {
+      fs.mkdirSync(ENGINE_DIR, { recursive: true });
+      fs.writeFileSync(ENGINE_FILE, JSON.stringify(ENGINE));
+    } catch (e) { console.error('engine save failed:', e.message); }
+  }, 800);
+}
+
+const clampW = w => Math.max(0.3, Math.min(2.5, w));
+function topicW(topic) { return topic ? (ENGINE.weights.topics[topic] ?? 1) : 1; }
+function symbolW(sym) { return ENGINE.weights.symbols[sym] ?? 1; }
+function momentumW() { return ENGINE.weights.momentum; }
+
+/* Record a fresh batch of guesses from the live forest forecast. */
+let engineBatching = false;
+async function ensurePredictionBatch() {
+  if (engineBatching || Date.now() - ENGINE.lastBatchTs < BATCH_EVERY) return;
+  engineBatching = true;
+  try {
+    const f = await api.forest();
+    const ts = Date.now();
+    let made = 0;
+    for (const t of f.trees) {
+      const fc = t.forecast;
+      if (!fc || t.price == null) continue;
+      if (Math.abs(fc.outlook) < 0.08) continue; // no conviction → no guess to grade
+      const dir = fc.outlook > 0 ? 1 : -1;
+      const topics = [...new Set((fc.drivers || []).map(d => d.topic).filter(Boolean))];
+      const sp = (t.spark || []).map(p => p.price).filter(Boolean);
+      const momo = sp.length >= 6 ? Math.sign(sp[sp.length - 1] - sp[sp.length - 6]) : 0;
+      for (const hz of ENGINE_HORIZONS) {
+        ENGINE.preds.push({
+          id: `${ts}:${t.symbol}:${hz}`,
+          ts, symbol: t.symbol, entry: t.price, hz, due: ts + hz * 86400000,
+          dir, move: +(fc.base * Math.sqrt(hz / fc.horizonDays)).toFixed(2),
+          conf: +Math.abs(fc.outlook).toFixed(2), topics, momo,
+          status: 'pending',
+        });
+        made++;
+      }
+    }
+    if (made) {
+      ENGINE.lastBatchTs = ts;
+      if (!ENGINE.startedAt) ENGINE.startedAt = ts;
+      // ledger cap: keep all pending + the freshest 4000 graded ones
+      if (ENGINE.preds.length > 6000) {
+        const pending = ENGINE.preds.filter(p => p.status === 'pending');
+        const doneOnes = ENGINE.preds.filter(p => p.status !== 'pending').slice(-4000);
+        ENGINE.preds = [...doneOnes, ...pending];
+      }
+      saveEngine();
+      console.log(`🎓 engine: recorded ${made} guesses (${new Date(ts).toISOString()})`);
+    }
+  } catch (e) { /* upstream nap — next nudge retries */ }
+  finally { engineBatching = false; }
+}
+
+/* Grade every due guess against the real price, then LEARN from it. */
+let engineEvaluating = false;
+async function evaluateDue() {
+  if (engineEvaluating) return;
+  engineEvaluating = true;
+  try {
+    const due = ENGINE.preds.filter(p => p.status === 'pending' && Date.now() >= p.due).slice(0, 60);
+    if (!due.length) return;
+    const bySym = {};
+    for (const p of due) (bySym[p.symbol] = bySym[p.symbol] || []).push(p);
+    let graded = 0;
+    for (const [sym, preds] of Object.entries(bySym)) {
+      let h;
+      try { h = await getHistory(resolveAsset(sym), 14); } catch (e) { continue; }
+      if (!h || !h.length) continue;
+      for (const p of preds) {
+        // price closest to the due moment — honest even if the server slept past it
+        let best = h[h.length - 1];
+        for (const pt of h) if (Math.abs(pt.t - p.due) < Math.abs(best.t - p.due)) best = pt;
+        if (Math.abs(best.t - p.due) > 3 * 86400000) { p.status = 'void'; continue; }
+        const actual = ((best.price - p.entry) / p.entry) * 100;
+        p.actual = +actual.toFixed(2);
+        p.hit = actual * p.dir > 0;
+        p.err = +Math.abs(actual - p.move).toFixed(2);
+        p.status = 'done';
+        graded++;
+        // ---- the learning step: reward what worked, demote what didn't ----
+        const step = p.hit ? 1.05 : 0.95;
+        for (const topic of p.topics) ENGINE.weights.topics[topic] = clampW(topicW(topic) * step);
+        ENGINE.weights.symbols[p.symbol] = clampW(symbolW(p.symbol) * step);
+        if (p.momo && (p.momo > 0) === (p.dir > 0)) {
+          ENGINE.weights.momentum = clampW(ENGINE.weights.momentum * (p.hit ? 1.03 : 0.97));
+        }
+        const day = new Date(p.due).toISOString().slice(0, 10);
+        const d = ENGINE.daily[day] = ENGINE.daily[day] || { n: 0, hits: 0 };
+        d.n++; if (p.hit) d.hits++;
+      }
+    }
+    if (graded) { saveEngine(); console.log(`🎓 engine: graded ${graded} guesses`); }
+  } finally { engineEvaluating = false; }
+}
+
+/* Any API traffic nudges the engine — so it keeps training on free hosting
+   that sleeps between visits (an external uptime ping makes it fully 24/7). */
+function engineNudge() { ensurePredictionBatch(); evaluateDue(); }
+
+function engineStats() {
+  const done = ENGINE.preds.filter(p => p.status === 'done');
+  const pending = ENGINE.preds.filter(p => p.status === 'pending');
+  const byHorizon = {};
+  for (const hz of ENGINE_HORIZONS) {
+    const set = done.filter(p => p.hz === hz);
+    const hits = set.filter(p => p.hit).length;
+    const recent = set.filter(p => p.due > Date.now() - 3 * 86400000);
+    byHorizon[hz] = {
+      n: set.length,
+      hitRate: set.length ? +(hits / set.length * 100).toFixed(1) : null,
+      recentRate: recent.length ? +(recent.filter(p => p.hit).length / recent.length * 100).toFixed(1) : null,
+      avgErr: set.length ? +(set.reduce((a, p) => a + p.err, 0) / set.length).toFixed(2) : null,
+      alwaysUpRate: set.length ? +(set.filter(p => p.actual > 0).length / set.length * 100).toFixed(1) : null,
+      nextDue: (() => { const q = pending.filter(p => p.hz === hz).sort((a, b) => a.due - b.due)[0]; return q ? q.due : null; })(),
+    };
+  }
+  const topics = Object.entries(ENGINE.weights.topics).sort((a, b) => b[1] - a[1]);
+  const day = ENGINE.startedAt ? Math.floor((Date.now() - ENGINE.startedAt) / 86400000) + 1 : 0;
+  return {
+    startedAt: ENGINE.startedAt, day, targetDays: 10,
+    assets: Object.keys(ASSETS).length,
+    total: ENGINE.preds.length, pending: pending.length, evaluated: done.length,
+    nextBatchInMin: Math.max(0, Math.round((ENGINE.lastBatchTs + BATCH_EVERY - Date.now()) / 60000)),
+    byHorizon,
+    daily: Object.entries(ENGINE.daily).sort((a, b) => a[0] < b[0] ? -1 : 1).slice(-14)
+      .map(([date, d]) => ({ date, n: d.n, hits: d.hits, rate: +(d.hits / d.n * 100).toFixed(0) })),
+    weights: {
+      momentum: +ENGINE.weights.momentum.toFixed(2),
+      trusted: topics.filter(([, w]) => w > 1.04).slice(0, 6).map(([t, w]) => ({ topic: t, w: +w.toFixed(2) })),
+      doubted: topics.filter(([, w]) => w < 0.96).slice(-6).reverse().map(([t, w]) => ({ topic: t, w: +w.toFixed(2) })),
+    },
+  };
+}
+
+api.training = async () => { engineNudge(); return engineStats(); };
+
 /* Per-IP rate limit for /api/*: protects upstream quotas + the LLM budget.   */
 const rateBuckets = new Map();
 function rateLimited(ip) {
@@ -1145,6 +1435,7 @@ const server = http.createServer(async (req, res) => {
       }
       const name = url.pathname.slice(5);
       const q = Object.fromEntries(url.searchParams);
+      engineNudge(); // any visit keeps the speculation engine guessing & grading
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Cache-Control', 'public, max-age=30');
       if (!api[name]) { res.writeHead(404, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ error: 'no such endpoint' })); }
@@ -1186,7 +1477,13 @@ if (require.main === module) {
     console.log(`  Live data: CoinGecko · Yahoo Finance · Reddit · Google News`);
     console.log(`  AI deep reads: ${process.env.ANTHROPIC_API_KEY ? 'ON' : 'off (set ANTHROPIC_API_KEY)'}`);
     console.log(`  For fun & learning only. Not financial advice.\n`);
+    console.log(`  🎓 speculation engine: ${ENGINE.preds.length} guesses on record, training day ${ENGINE.startedAt ? Math.floor((Date.now() - ENGINE.startedAt) / 86400000) + 1 : 0}`);
   });
+
+  // The engine's own clock: first batch shortly after boot, then keep
+  // guessing & grading every 15 min while the process is awake.
+  setTimeout(engineNudge, 15000);
+  setInterval(engineNudge, 15 * 60000);
 
   // Keep the server alive through transient errors; shut down cleanly on host signals.
   process.on('unhandledRejection', err => console.error('unhandledRejection:', err?.message || err));

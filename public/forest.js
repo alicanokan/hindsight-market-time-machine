@@ -33,10 +33,41 @@ const STR = {
     histTitle: '🧪 History check', histSub: 'after the last {n} similar clouds — average real 3-day move',
     histNote: '⚠ = history moved opposite to the prediction. Clouds don\'t always rain where you expect!',
     playsTitle: '🎲 Suggested plays right now', dirGrow: 'GROWS 🌱', dirWilt: 'WILTS 🥀',
-    playForecast: 'If you plant <b>$100</b> on {tree} betting it {dir} over the next ~<b>{days} days</b>, you might earn <b>~{est}</b> <i>(wild range {lo}%…+{hi}%)</i>',
+    playForecast: 'If you plant <b>$100</b> on {tree} betting it {dir} within the next <b>{hz}</b>, you might earn <b>~{est}</b> <i>(wild range {lo}%…{hi}%)</i>',
     playHistory: '{topic} clouds are overhead — after the last <b>{n}</b> similar ones, {tree} averaged <b>{mv}%</b> in {days} days',
     oneClick: '🌱 1-click bet $100',
-    playsNote: 'Pretend money · wild guesses, NOT advice · watch & harvest in 🌱 my garden',
+    playCombo: '⚡ combo: {topics} clouds are overhead at once — stacking their history, {tree} leaned <b>{mv}%</b> over {days} days',
+    playsNote: 'Pretend money · auto-settles at the deadline · wild guesses, NOT advice',
+    simBtn: 'cloud casino',
+    simTitle: 'Cloud casino — bet the clouds, see it in seconds',
+    simBank: 'Base money',
+    simPick: 'Pick a cloud (or a combination) — the engine bets with the rain: long what it 💧 waters, short what it ☠️ poisons',
+    simRun: '⚡ Run 8 lightning rounds',
+    simRound: 'Round',
+    simTotal: 'Total',
+    simBankNow: 'Bank',
+    simReset: 'reset to $1,000',
+    simNote: 'Each ⚡ round replays the clouds\' historical rain with random weather luck — a possible 3 days squeezed into half a second. Pretend money, NOT advice.',
+    simNoClouds: 'Pick at least one cloud ☁️',
+    simFromCloud: '⚡ bet this cloud',
+    guessTitle: '🎯 My first $10 — the guessing game',
+    guessSub: 'You don\'t need to know anything about crypto. The engine reads the news weather and makes a guess — you just decide: <b>believe it or doubt it</b>. Right guesses grow your wallet, wrong ones shrink it.',
+    wallet: 'Wallet', goal: 'goal: turn $10 into $100', activeGuesses: 'in live guesses',
+    stakeLabel: 'Stake', believe: '✅ BELIEVE the engine', doubt: '❌ DOUBT it', nextCard: '↻ another guess',
+    guessCard: 'The news weather over {tree} looks {weather}. The engine guesses it <b>{dir}</b> ~<b>{base}%</b> by tomorrow.',
+    guessWhy: 'Why: {why}', guessNoNews: 'no strong news — pure momentum',
+    mayHappen: 'if you click → most likely <b>${likely}</b>, wild range ${lo}…${hi}',
+    peek: '🔮 peek at 3 possible tomorrows',
+    peekLine: 'tomorrow #{n}: ${v}',
+    placed: '🎯 Guess locked in! It settles tomorrow at the REAL market price.',
+    broke: 'You\'re broke 😅 — the market ate your $10. That\'s the real lesson: guessing is hard. Try again?',
+    resetWallet: '↺ start over with $10',
+    walletWin: '🎉 guess won!', walletLoss: '💸 guess lost —',
+    notEnough: '💸 not enough in the wallet — lower the stake',
+    guessNote: 'Pretend dollars, REAL prices — every guess settles at tomorrow\'s actual market price. A game for learning, NOT financial advice and NOT real money.',
+    hz1h: '1 hour', hz1d: '1 day', hz1w: '1 week', hz30d: '1 month',
+    hourNote: '🎲 at 1-hour scale, luck rules — basically a coin-flip with vibes',
+    settled: '⏰ bet settled:', left: 'left', manual: '♾ manual',
     tour: [
       '☁️ <b>News clouds</b> float over the forest.<br>Click one (or use 📰 news list) to see <b>where its rain falls</b> — which assets it 💧 waters or ☠️ poisons, and why.',
       '🌳 Every <b>tree is an asset</b> — coins, stocks, gold, oil, even the lira. Click a tree for its 🔮 <b>news-driven forecast</b> and 🌱 <b>plant a pretend $100 seed</b> on it.',
@@ -66,10 +97,41 @@ const STR = {
     histTitle: '🧪 Tarih kontrolü', histSub: 'son {n} benzer buluttan sonra — ortalama gerçek 3 günlük hareket',
     histNote: '⚠ = tarih tahminin tersine hareket etti. Bulutlar her zaman beklediğin yere yağmaz!',
     playsTitle: '🎲 Şu an önerilen oyunlar', dirGrow: 'BÜYÜR 🌱', dirWilt: 'SOLAR 🥀',
-    playForecast: '{tree} üzerine önümüzdeki ~<b>{days} gün</b> için {dir} diye <b>100$</b> ekersen, <b>~{est}</b> kazanabilirsin <i>(geniş aralık {lo}%…+{hi}%)</i>',
+    playForecast: '{tree} üzerine önümüzdeki <b>{hz}</b> içinde {dir} diye <b>100$</b> ekersen, <b>~{est}</b> kazanabilirsin <i>(geniş aralık {lo}%…{hi}%)</i>',
     playHistory: '{topic} bulutları tepede — son <b>{n}</b> benzerinden sonra {tree} {days} günde ortalama <b>{mv}%</b> yaptı',
     oneClick: '🌱 Tek tıkla 100$ oyna',
-    playsNote: 'Hayali para · vahşi tahmin, tavsiye DEĞİL · takip ve hasat: 🌱 bahçem',
+    playCombo: '⚡ kombo: {topics} bulutları aynı anda tepede — tarihlerini üst üste koyunca {tree} {days} günde <b>{mv}%</b> eğilim gösterdi',
+    playsNote: 'Hayali para · vadesinde otomatik kapanır · vahşi tahmin, tavsiye DEĞİL',
+    simBtn: 'bulut kumarhanesi',
+    simTitle: 'Bulut kumarhanesi — buluta oyna, saniyeler içinde gör',
+    simBank: 'Ana para',
+    simPick: 'Bir bulut (ya da kombinasyon) seç — motor yağmurla birlikte oynar: 💧 suladığına uzun, ☠️ zehirlediğine kısa',
+    simRun: '⚡ 8 şimşek turu oynat',
+    simRound: 'Tur',
+    simTotal: 'Toplam',
+    simBankNow: 'Kasa',
+    simReset: '1.000$\'a sıfırla',
+    simNote: 'Her ⚡ tur, bulutların tarihsel yağmurunu rastgele hava şansıyla tekrar oynatır — yarım saniyeye sıkıştırılmış olası 3 gün. Hayali para, tavsiye DEĞİL.',
+    simNoClouds: 'En az bir bulut seç ☁️',
+    simFromCloud: '⚡ bu buluta oyna',
+    guessTitle: '🎯 İlk 10 dolarım — tahmin oyunu',
+    guessSub: 'Kripto bilmene hiç gerek yok. Motor haber havasını okur ve bir tahmin yapar — sen sadece karar ver: <b>inan ya da şüphelen</b>. Doğru tahminler cüzdanını büyütür, yanlışlar küçültür.',
+    wallet: 'Cüzdan', goal: 'hedef: 10$\'ı 100$ yap', activeGuesses: 'canlı tahminde',
+    stakeLabel: 'Bahis', believe: '✅ Motora İNAN', doubt: '❌ ŞÜPHELEN', nextCard: '↻ başka tahmin',
+    guessCard: '{tree} üzerindeki haber havası {weather} görünüyor. Motor yarına kadar ~<b>{base}%</b> <b>{dir}</b> diye tahmin ediyor.',
+    guessWhy: 'Neden: {why}', guessNoNews: 'güçlü haber yok — saf momentum',
+    mayHappen: 'tıklarsan → büyük ihtimalle <b>${likely}</b>, geniş aralık ${lo}…${hi}',
+    peek: '🔮 3 olası yarına göz at',
+    peekLine: 'yarın #{n}: ${v}',
+    placed: '🎯 Tahmin kilitlendi! Yarın GERÇEK piyasa fiyatıyla kapanır.',
+    broke: 'Battın 😅 — piyasa 10 dolarını yedi. Gerçek ders bu: tahmin zordur. Tekrar dener misin?',
+    resetWallet: '↺ 10$ ile baştan başla',
+    walletWin: '🎉 tahmin tuttu!', walletLoss: '💸 tahmin tutmadı —',
+    notEnough: '💸 cüzdanda yeterli para yok — bahsi düşür',
+    guessNote: 'Hayali dolarlar, GERÇEK fiyatlar — her tahmin yarının gerçek piyasa fiyatıyla kapanır. Öğrenmek için bir oyun, yatırım tavsiyesi DEĞİL, gerçek para DEĞİL.',
+    hz1h: '1 saat', hz1d: '1 gün', hz1w: '1 hafta', hz30d: '1 ay',
+    hourNote: '🎲 1 saatlik ölçekte şans konuşur — hisli bir yazı-tura',
+    settled: '⏰ bahis kapandı:', left: 'kaldı', manual: '♾ elle',
     tour: [
       '☁️ Ormanın üzerinde <b>haber bulutları</b> süzülür.<br>Birine tıkla (ya da 📰 haber listesini kullan): <b>yağmuru nereye düşüyor</b> — hangi varlıkları 💧 suluyor, hangilerini ☠️ zehirliyor?',
       '🌳 Her <b>ağaç bir varlık</b> — coinler, hisseler, altın, petrol, hatta lira. Ağaca tıkla: 🔮 <b>haber destekli tahminini</b> gör ve 🌱 <b>hayali 100$ tohum ek</b>.',
@@ -86,7 +148,7 @@ function applyLang() {
   $('#langToggle').textContent = lang === 'en' ? '🇹🇷 TR' : '🇬🇧 EN';
   if ($('#timeDate').textContent === 'NOW' || $('#timeDate').textContent === 'ŞİMDİ') $('#timeDate').textContent = L().now;
 }
-$('#langToggle').onclick = () => { lang = lang === 'en' ? 'tr' : 'en'; localStorage.setItem('forestLang', lang); applyLang(); renderGardenBtn(); if (DATA) renderSuggestions(); };
+$('#langToggle').onclick = () => { lang = lang === 'en' ? 'tr' : 'en'; localStorage.setItem('forestLang', lang); applyLang(); renderGardenBtn(); if (DATA) { renderSuggestions(); renderGuessGame(); } };
 
 /* ---------------- state ---------------- */
 let DATA = null;
@@ -112,6 +174,8 @@ async function boot() {
     clearTimeout(splashTimer);
     renderAll();
     maybeStartTour();
+    settleExpired();
+    setInterval(settleExpired, 60000);     // the betting engine's clock
     setInterval(refreshClouds, 3 * 60000); // A4: quiet refresh
     // history calibration loads in the background (first compute can be slow)
     fetch('/api/calibration').then(r => r.json()).then(j => { CAL = j.calibration || null; renderSuggestions(); }).catch(() => {});
@@ -126,33 +190,87 @@ function renderAll() {
   renderClouds();
   renderStory();
   renderSuggestions();
+  renderGuessGame();
   renderGardenBtn();
   renderSeedBadges();
   $('#staleBadge').hidden = !DATA._stale;
   updateTime(+$('#timeSlider').value);
 }
 
-/* ---------------- 🎲 suggested one-click plays ---------------- */
+/* ---------------- 🎲 suggested one-click plays (multi-horizon) ------------- */
+const HORIZONS = [
+  { key: '1h', days: 1 / 24 },
+  { key: '1d', days: 1 },
+  { key: '1w', days: 7 },
+  { key: '30d', days: 30 },
+];
+let horizonKey = localStorage.getItem('horizon') || '1w';
+const hzLabel = k => L()['hz' + k];
+
+// Scale the 30-day forecast band down to any horizon with √time.
+// (Honest approximation: volatility clusters intraday, but for a game it's fair.)
+function horizonPlay(t, days) {
+  const f = t.forecast;
+  if (!f) return null;
+  const band30 = (f.high - f.low) / 2;
+  const dailyBand = band30 / Math.sqrt(30);
+  const band = dailyBand * Math.sqrt(days);
+  const drift = f.outlook * band * 0.8;
+  return { est: Math.abs(drift), lo: +(drift - band).toFixed(days < 1 ? 2 : 1), hi: +(drift + band).toFixed(days < 1 ? 2 : 1) };
+}
+
 function buildSuggestions() {
   const sugg = [];
-  // 1) strongest forecast leans (30-day plays)
+  const hz = HORIZONS.find(h => h.key === horizonKey) || HORIZONS[2];
+  // 1) strongest forecast leans, scaled to the chosen horizon
   const ranked = DATA.trees.filter(t => t.forecast && t.price != null)
     .sort((a, b) => Math.abs(b.forecast.outlook) - Math.abs(a.forecast.outlook));
-  for (const t of ranked.slice(0, 5)) {
+  for (const t of ranked.slice(0, 6)) {
     const f = t.forecast;
-    if (Math.abs(f.outlook) < 0.3 || Math.abs(f.base) < 0.5) continue;
-    sugg.push({ kind: 'forecast', t, dir: f.outlook > 0 ? 1 : -1, days: f.horizonDays, est: Math.abs(f.base), lo: f.low, hi: f.hi ?? f.high });
+    if (Math.abs(f.outlook) < 0.3) continue;
+    const p = horizonPlay(t, hz.days);
+    if (!p || p.est < 0.01) continue;
+    sugg.push({ kind: 'forecast', t, dir: f.outlook > 0 ? 1 : -1, hz, ...p });
     if (sugg.length >= 3) break;
   }
-  // 2) history plays: topics currently in the sky whose past clouds moved a tree
-  if (CAL && DATA.topicCount) {
+  const seen = new Set(sugg.map(s => s.t.symbol + s.dir));
+  // 2) combo plays — several cloud topics overhead at once hitting the SAME tree:
+  //    stack their historical reactions and bet the combined lean
+  if (CAL && DATA.topicCount && hz.days >= 1) {
+    const overhead = Object.keys(CAL).filter(t => (DATA.topicCount[t] || 0) >= 1);
+    const perTree = {};
+    for (const topic of overhead) {
+      for (const [sym, mv] of Object.entries(CAL[topic].reactions)) {
+        (perTree[sym] = perTree[sym] || { sum: 0, topics: [] });
+        perTree[sym].sum += mv;
+        perTree[sym].topics.push(topic);
+      }
+    }
+    const combos = Object.entries(perTree).filter(([, v]) => v.topics.length >= 2)
+      .sort((a, b) => Math.abs(b[1].sum) - Math.abs(a[1].sum));
+    for (const [sym, v] of combos) {
+      if (Math.abs(v.sum) < 1) continue;
+      const t = DATA.trees.find(x => x.symbol === sym);
+      if (!t || t.price == null) continue;
+      const dir = v.sum > 0 ? 1 : -1;
+      if (seen.has(sym + dir)) continue;
+      seen.add(sym + dir);
+      sugg.push({ kind: 'combo', t, dir, hz: HORIZONS[2], days: 3, mv: +v.sum.toFixed(1), topics: v.topics });
+      if (sugg.length >= 4) break;
+    }
+  }
+  // 3) history plays (3-day event studies) — shown except on the 1h horizon
+  if (CAL && DATA.topicCount && hz.days >= 1) {
     for (const [topic, cal] of Object.entries(CAL)) {
       if ((DATA.topicCount[topic] || 0) < 2) continue;
       const strongest = Object.entries(cal.reactions).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))[0];
       if (!strongest || Math.abs(strongest[1]) < 0.8) continue;
       const t = DATA.trees.find(x => x.symbol === strongest[0]);
       if (!t || t.price == null) continue;
-      sugg.push({ kind: 'history', t, dir: strongest[1] > 0 ? 1 : -1, days: cal.horizonDays, est: Math.abs(strongest[1]), mv: strongest[1], topic, events: cal.events });
+      const dir = strongest[1] > 0 ? 1 : -1;
+      if (seen.has(strongest[0] + dir)) continue;
+      seen.add(strongest[0] + dir);
+      sugg.push({ kind: 'history', t, dir, hz: HORIZONS[2], days: cal.horizonDays, est: Math.abs(strongest[1]), mv: strongest[1], topic, events: cal.events });
       if (sugg.length >= 6) break;
     }
   }
@@ -162,27 +280,44 @@ function buildSuggestions() {
 function renderSuggestions() {
   const strip = $('#betsStrip');
   const sugg = buildSuggestions();
-  if (!sugg.length) { strip.hidden = true; return; }
   strip.hidden = false;
-  $('#betsHead').textContent = L().playsTitle;
+  const picker = HORIZONS.map(h =>
+    `<button class="hz-btn ${h.key === horizonKey ? 'active' : ''}" data-hz="${h.key}">${hzLabel(h.key)}</button>`).join('');
+  $('#betsHead').innerHTML = `<span>${L().playsTitle}</span><span class="hz-picker">${picker}</span>`;
+  $('#betsHead').querySelectorAll('.hz-btn').forEach(b => b.onclick = () => {
+    horizonKey = b.dataset.hz; localStorage.setItem('horizon', horizonKey); renderSuggestions();
+  });
   $('#betsNote').textContent = L().playsNote;
+  if (!sugg.length) { $('#betsCards').innerHTML = '<p style="opacity:.6;padding:8px">🌫️</p>'; return; }
   $('#betsCards').innerHTML = sugg.map((s, i) => {
     const treeLabel = `${s.t.char} <b>${escapeHtml(s.t.name)}</b>`;
-    const text = s.kind === 'forecast'
-      ? L().playForecast.replace('{tree}', treeLabel).replace('{dir}', s.dir > 0 ? L().dirGrow : L().dirWilt)
-          .replace('{days}', s.days).replace('{est}', '+$' + s.est.toFixed(1)).replace('{lo}', s.lo).replace('{hi}', s.hi)
-      : L().playHistory.replace('{topic}', escapeHtml(s.topic)).replace('{n}', s.events)
-          .replace('{tree}', treeLabel).replace('{mv}', (s.mv > 0 ? '+' : '') + s.mv).replace('{days}', s.days);
+    let text, kindTag;
+    if (s.kind === 'forecast') {
+      text = L().playForecast.replace('{tree}', treeLabel).replace('{dir}', s.dir > 0 ? L().dirGrow : L().dirWilt)
+        .replace('{hz}', hzLabel(s.hz.key)).replace('{est}', '+$' + s.est.toFixed(s.hz.days < 1 ? 2 : 1))
+        .replace('{lo}', s.lo).replace('{hi}', (s.hi >= 0 ? '+' : '') + s.hi);
+      kindTag = (s.t.forecast ? s.t.forecast.weather : '🔮') + ' 🔮 ' + hzLabel(s.hz.key);
+    } else if (s.kind === 'combo') {
+      text = L().playCombo.replace('{topics}', s.topics.map(escapeHtml).join(' + '))
+        .replace('{tree}', treeLabel).replace('{mv}', (s.mv > 0 ? '+' : '') + s.mv).replace('{days}', s.days);
+      kindTag = '⚡ ' + s.topics.map(escapeHtml).join(' + ');
+    } else {
+      text = L().playHistory.replace('{topic}', escapeHtml(s.topic)).replace('{n}', s.events)
+        .replace('{tree}', treeLabel).replace('{mv}', (s.mv > 0 ? '+' : '') + s.mv).replace('{days}', s.days);
+      kindTag = '🧪 ' + (s.topic || '');
+    }
+    const luck = s.kind === 'forecast' && s.hz.days < 1 ? `<div class="play-luck">${L().hourNote}</div>` : '';
     const mood = s.dir > 0 ? 'play-up' : 'play-down';
     return `<div class="play-card ${mood}">
-      <div class="play-kind">${s.kind === 'forecast' ? (s.t.forecast ? s.t.forecast.weather : '🔮') + ' 🔮' : '🧪 ' + (s.topic || '')}</div>
+      <div class="play-kind">${kindTag}</div>
       <div class="play-text">${text}</div>
+      ${luck}
       <button class="cp-btn play-btn" data-i="${i}">${L().oneClick} ${s.dir > 0 ? '🌱' : '🥀'}</button>
     </div>`;
   }).join('');
   $('#betsCards').querySelectorAll('.play-btn').forEach(btn => btn.onclick = () => {
     const s = sugg[+btn.dataset.i];
-    plantSeed(s.t, s.dir);
+    plantSeed(s.t, s.dir, s.kind === 'forecast' ? s.hz : { key: '1w', days: s.days });
     btn.textContent = '✅ ' + (lang === 'tr' ? 'ekildi!' : 'planted!');
     btn.disabled = true;
   });
@@ -230,20 +365,33 @@ function renderForest() {
   const ground = $('#ground');
   ground.innerHTML = '';
   const order = ['crypto', 'tech', 'auto', 'commodities', 'bonds', 'fx', 'industry', 'green', 'meme'];
+  const plots = [];
   for (const fam of order) {
     const info = DATA.families[fam];
     const members = DATA.trees.filter(t => t.family === fam);
     if (!members.length || !info) continue;
+    plots.push({ fam, info, members });
+  }
+  // Two depth rows: the whole forest fits on screen (no panning) and the
+  // scaled-down back row gives the scene its 3D horizon.
+  const total = plots.reduce((a, p) => a + p.members.length, 0);
+  const back = el('div', 'forest-row row-back');
+  const front = el('div', 'forest-row row-front');
+  let acc = 0;
+  for (const p of plots) {
     const plot = el('div', 'family-plot');
-    plot.dataset.family = fam;
-    const sign = el('div', 'family-sign', `${info.emoji} ${info.label}`);
-    sign.title = info.blurb;
+    plot.dataset.family = p.fam;
+    const sign = el('div', 'family-sign', `${p.info.emoji} ${p.info.label}`);
+    sign.title = p.info.blurb;
     const row = el('div', 'tree-row');
-    for (const t of members) row.appendChild(makeTree(t));
+    for (const t of p.members) row.appendChild(makeTree(t));
     plot.appendChild(sign);
     plot.appendChild(row);
-    ground.appendChild(plot);
+    (acc < total / 2 ? back : front).appendChild(plot);
+    acc += p.members.length;
   }
+  ground.appendChild(back);
+  ground.appendChild(front);
 }
 
 function makeTree(t) {
@@ -296,8 +444,8 @@ function renderClouds() {
     const lane = i % 4;
     cloud.style.top = (8 + lane * 21 + (i % 2 ? 4 : 0)) + '%';
     cloud.style.left = ((i * 37) % 90) + '%';
-    cloud.style.animationDuration = (26 + (i % 7) * 4) + 's';
-    cloud.style.animationDelay = (-(i * 3) % 30) + 's';
+    cloud.style.animationDuration = (85 + (i % 7) * 15) + 's';
+    cloud.style.animationDelay = (-(i * 11) % 85) + 's';
     const tag = c.topics[0] || (c.political ? 'Politics 🏛️' : '📰');
     cloud.innerHTML = `<span class="cloud-emoji">☁️</span><span class="cloud-tag">${tag}</span>`;
     cloud.title = c.title;
@@ -355,14 +503,22 @@ function rainOnTree(tree, dir) {
   const fx = tree.querySelector('.tree-fx');
   if (!fx) return;
   fx.innerHTML = '';
+  // color tells the story at a glance: green shower = good rain, red = poison
+  fx.className = 'tree-fx ' + (dir > 0 ? 'rain-good' : dir < 0 ? 'rain-bad' : '');
   const drop = dir > 0 ? '💧' : dir < 0 ? '☠️' : '·';
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 4; i++) {
     const d = el('span', 'drop', drop);
     d.style.left = (10 + Math.random() * 80) + '%';
     d.style.animationDelay = (Math.random() * 0.6) + 's';
     fx.appendChild(d);
   }
-  setTimeout(() => { fx.innerHTML = ''; }, 2200);
+  for (let i = 0; i < 9; i++) {
+    const s = el('span', 'drop-streak');
+    s.style.left = (6 + Math.random() * 88) + '%';
+    s.style.animationDelay = (Math.random() * 0.9) + 's';
+    fx.appendChild(s);
+  }
+  setTimeout(() => { fx.innerHTML = ''; fx.className = 'tree-fx'; }, 2600);
 }
 
 function showCloudPanel(c) {
@@ -388,11 +544,22 @@ function showCloudPanel(c) {
     ${histCheckHtml(c)}
     <div id="aiRead"></div>
     <div class="cp-actions">
-      <button class="cp-btn" id="cpSpeak">${L().hear}</button>
+      <button class="cp-btn" id="cpSim">${L().simFromCloud}</button>
+      <button class="cp-btn ghost" id="cpSpeak">${L().hear}</button>
       <a class="cp-btn ghost" href="${c.link}" target="_blank" rel="noopener">${L().read}</a>
     </div>`;
   openPanel();
   $('#cpSpeak').onclick = () => speakCloud(c);
+  $('#cpSim').onclick = () => {
+    // one click: bet this cloud with the current bank and watch the rounds run
+    simSel.clear();
+    const idx = (DATA.clouds || []).indexOf(c);
+    if (idx >= 0) simSel.add(idx);
+    closePanel();
+    renderSimSheet();
+    openSheet('simSheet');
+    runSim();
+  };
   if (DATA.llm) loadAiRead(c);
 }
 
@@ -505,15 +672,50 @@ function speakForecast(t) {
 }
 
 /* ---------------- the garden (pretend seeds, localStorage) ---------------- */
-function plantSeed(t, dir) {
+function plantSeed(t, dir, hz) {
   if (t.price == null) { toast('⚠ no live price for this tree right now'); return; }
-  garden.push({ symbol: t.symbol, dir, amount: 100, entry: t.price, date: new Date().toISOString().slice(0, 10) });
+  const seed = { symbol: t.symbol, dir, amount: 100, entry: t.price, date: new Date().toISOString().slice(0, 10) };
+  if (hz) { seed.hzKey = hz.key; seed.expiresAt = Date.now() + hz.days * 86400000; }
+  garden.push(seed);
   saveGarden();
   sfx('pop');
-  toast(`${L().planted} ${t.char} ${t.name} ${dir > 0 ? '🌱' : '🥀'}`);
+  toast(`${L().planted} ${t.char} ${t.name} ${dir > 0 ? '🌱' : '🥀'}${hz ? ' · ' + hzLabel(hz.key) : ''}`);
   renderSeedBadges();
   renderGardenBtn();
   closePanel();
+}
+
+// The betting engine settles bets whose deadline has passed (at the current
+// price — if you were away, it settles on your next visit).
+function settleExpired() {
+  if (!DATA) return;
+  let changed = false;
+  for (let i = garden.length - 1; i >= 0; i--) {
+    const s = garden[i];
+    if (!s.expiresAt || Date.now() < s.expiresAt) continue;
+    const { value, pnl } = seedValue(s);
+    const t = DATA.trees.find(x => x.symbol === s.symbol);
+    if (s.game === 'guess') {
+      // beginner game: the stake (plus or minus) flows back into the wallet
+      wallet += value;
+      saveWallet();
+      toast(`${pnl >= 0 ? L().walletWin : L().walletLoss} ${t ? t.char + ' ' + t.name : s.symbol} ${pnl >= 0 ? '+' : '−'}$${Math.abs(pnl).toFixed(2)} · ${L().wallet}: $${wallet.toFixed(2)}`);
+    } else {
+      gardenScore += pnl;
+      toast(`${L().settled} ${t ? t.char + ' ' + t.name : s.symbol} ${pnl >= 0 ? '+' : ''}${pnl.toFixed(1)}`);
+    }
+    garden.splice(i, 1);
+    changed = true;
+  }
+  if (changed) { saveGarden(); renderSeedBadges(); renderGardenBtn(); renderGuessGame(); }
+}
+
+function countdown(s) {
+  if (!s.expiresAt) return L().manual;
+  const ms = s.expiresAt - Date.now();
+  if (ms <= 0) return '⏰';
+  const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000), d = Math.floor(h / 24);
+  return '⏳ ' + (d >= 1 ? `${d}d ${h % 24}h` : h >= 1 ? `${h}h ${m}m` : `${m}m`) + ' ' + L().left;
 }
 
 function seedValue(s) {
@@ -556,8 +758,8 @@ function renderGardenSheet() {
     const { value, pnl } = seedValue(s);
     const good = pnl >= 0;
     return `<div class="seed-row">
-      <span class="sr-ico">${s.dir > 0 ? '🌱' : '🥀'}</span>
-      <div class="sr-main"><b>${t ? t.char + ' ' + escapeHtml(t.name) : s.symbol}</b> ${s.dir > 0 ? L().seedLong : L().seedShort} · ${s.date}
+      <span class="sr-ico">${s.game === 'guess' ? '🎯' : s.dir > 0 ? '🌱' : '🥀'}</span>
+      <div class="sr-main"><b>${t ? t.char + ' ' + escapeHtml(t.name) : s.symbol}</b> ${s.dir > 0 ? L().seedLong : L().seedShort} · ${s.date} · <span class="sr-count">${countdown(s)}</span>
         <div class="imp-why">${fmtMoney(s.entry)} → ${t ? fmtMoney(t.price) : '—'}</div></div>
       <span class="sr-pnl ${good ? 'up' : 'down'}">${good ? '+' : ''}${pnl.toFixed(0)}</span>
       <button class="cp-btn sr-harvest" data-i="${i}">${L().harvest}</button>
@@ -565,14 +767,233 @@ function renderGardenSheet() {
   }).join('') + `<p style="padding:10px 14px;font-family:'Space Mono',monospace;font-size:13px">${L().score}: <b>${gardenScore >= 0 ? '+' : ''}${gardenScore.toFixed(0)}</b></p>`;
   body.querySelectorAll('.sr-harvest').forEach(b => b.onclick = () => {
     const i = +b.dataset.i;
-    const { pnl } = seedValue(garden[i]);
-    gardenScore += pnl;
+    const s = garden[i];
+    const { value, pnl } = seedValue(s);
+    if (s.game === 'guess') { wallet += value; saveWallet(); }
+    else gardenScore += pnl;
     garden.splice(i, 1);
     saveGarden(); sfx('pop');
-    toast(`🧺 ${pnl >= 0 ? '+' : ''}${pnl.toFixed(0)} harvested!`);
-    renderGardenSheet(); renderSeedBadges(); renderGardenBtn();
+    toast(`🧺 ${pnl >= 0 ? '+' : ''}${pnl.toFixed(s.game === 'guess' ? 2 : 0)} harvested!`);
+    renderGardenSheet(); renderSeedBadges(); renderGardenBtn(); renderGuessGame();
   });
 }
+
+/* ---------------- 🎯 my first $10 — beginner guessing game ------------------ */
+/* The engine makes a plain-language guess from the news weather; the player
+   only chooses BELIEVE or DOUBT. Before the click, the card says what may
+   happen to the stake. Guesses settle at tomorrow's REAL price via the same
+   engine that settles garden seeds. Pretend dollars — the wallet can and
+   should be able to go broke; that's the lesson. */
+let wallet = parseFloat(localStorage.getItem('guessWallet') ?? '10');
+let guessIdx = 0;
+let guessStake = 1;
+const saveWallet = () => localStorage.setItem('guessWallet', String(wallet));
+
+function buildGuessCards() {
+  return DATA.trees.filter(t => t.forecast && t.price != null)
+    .sort((a, b) => Math.abs(b.forecast.outlook) - Math.abs(a.forecast.outlook))
+    .slice(0, 10);
+}
+
+function renderGuessGame() {
+  if (!DATA) return;
+  const strip = $('#guessStrip');
+  if (!strip) return;
+  strip.hidden = false;
+  const live = garden.filter(s => s.game === 'guess');
+  const lockedIn = live.reduce((a, s) => a + seedValue(s).value, 0);
+  $('#guessWallet').innerHTML =
+    `💰 ${L().wallet}: <b>$${wallet.toFixed(2)}</b>` +
+    (live.length ? ` <span class="gw-live">+ $${lockedIn.toFixed(2)} ${L().activeGuesses} (${live.length})</span>` : '') +
+    ` <span class="gw-goal">· ${L().goal}</span>`;
+  const body = $('#guessBody');
+
+  if (wallet < 1 && !live.length) {
+    body.innerHTML = `<div class="guess-broke">${L().broke}<br>
+      <button class="cp-btn" id="guessReset">${L().resetWallet}</button></div>`;
+    $('#guessReset').onclick = () => { wallet = 10; saveWallet(); sfx('pop'); renderGuessGame(); };
+    return;
+  }
+
+  const cards = buildGuessCards();
+  if (!cards.length) { body.innerHTML = '<p style="opacity:.6;padding:8px">🌫️</p>'; return; }
+  const t = cards[guessIdx % cards.length];
+  const f = t.forecast;
+  const p = horizonPlay(t, 1);                      // tomorrow's band, √time-scaled
+  const drift = (p.lo + p.hi) / 2, band = (p.hi - p.lo) / 2;
+  const sgn = f.outlook >= 0 ? 1 : -1;
+  guessStake = Math.min(guessStake, Math.max(1, Math.floor(wallet)));
+  const stake = guessStake;
+
+  // what may happen to the stake, per button (long/short of the price move)
+  const outcome = betSgn => {
+    const at = m => Math.max(0, stake * (1 + betSgn * m / 100));
+    const ends = [at(drift - band), at(drift + band)];
+    return { likely: at(drift), lo: Math.min(...ends), hi: Math.max(...ends) };
+  };
+  const bel = outcome(sgn), dbt = outcome(-sgn);
+  const mayLine = o => L().mayHappen.replace('{likely}', o.likely.toFixed(2))
+    .replace('{lo}', o.lo.toFixed(2)).replace('{hi}', o.hi.toFixed(2));
+
+  const why = f.drivers && f.drivers.length ? f.drivers[0].why : L().guessNoNews;
+  const cardText = L().guessCard
+    .replace('{tree}', `${t.char} <b>${escapeHtml(t.name)}</b>`)
+    .replace('{weather}', f.weather)
+    .replace('{dir}', sgn > 0 ? L().dirGrow : L().dirWilt)
+    .replace('{base}', (drift >= 0 ? '+' : '') + drift.toFixed(2));
+
+  body.innerHTML = `
+    <div class="guess-card">
+      <div class="guess-text">${cardText}</div>
+      <div class="guess-why">💡 ${L().guessWhy.replace('{why}', escapeHtml(why))}</div>
+      <div class="guess-stakes">${L().stakeLabel}:
+        ${[1, 2, 5].map(v => `<button class="hz-btn gs-btn ${v === stake ? 'active' : ''}" data-v="${v}" ${v > wallet ? 'disabled' : ''}>$${v}</button>`).join('')}
+      </div>
+      <div class="guess-actions">
+        <div class="guess-choice">
+          <button class="cp-btn guess-btn" id="guessBelieve">${L().believe}</button>
+          <div class="guess-may">${mayLine(bel)}</div>
+        </div>
+        <div class="guess-choice">
+          <button class="cp-btn ghost guess-btn" id="guessDoubt">${L().doubt}</button>
+          <div class="guess-may">${mayLine(dbt)}</div>
+        </div>
+      </div>
+      <div class="guess-tools">
+        <button class="hz-btn" id="guessPeek">${L().peek}</button>
+        <button class="hz-btn" id="guessNext">${L().nextCard}</button>
+        <button class="hz-btn" id="guessResetSmall" title="${L().resetWallet}">↺ $10</button>
+      </div>
+      <div class="guess-peek-out" id="guessPeekOut"></div>
+    </div>`;
+
+  body.querySelectorAll('.gs-btn').forEach(b => b.onclick = () => { guessStake = +b.dataset.v; renderGuessGame(); });
+  $('#guessBelieve').onclick = () => placeGuess(t, sgn, stake);
+  $('#guessDoubt').onclick = () => placeGuess(t, -sgn, stake);
+  $('#guessNext').onclick = () => { guessIdx++; sfx('pop'); renderGuessGame(); };
+  $('#guessResetSmall').onclick = () => { wallet = 10; saveWallet(); sfx('pop'); renderGuessGame(); };
+  $('#guessPeek').onclick = () => {
+    const lines = [];
+    for (let i = 1; i <= 3; i++) {
+      const m = drift + (Math.random() * 2 - 1) * band;
+      const v = Math.max(0, stake * (1 + sgn * m / 100));
+      lines.push(`⚡ ${L().peekLine.replace('{n}', i).replace('{v}', v.toFixed(2))}`);
+    }
+    $('#guessPeekOut').innerHTML = lines.map(l => `<span class="peek-line">${l}</span>`).join('');
+    sfx('rain');
+  };
+}
+
+function placeGuess(t, betDir, stake) {
+  if (stake > wallet) { toast(L().notEnough); return; }
+  if (t.price == null) { toast('⚠ no live price for this tree right now'); return; }
+  wallet -= stake;
+  saveWallet();
+  garden.push({
+    symbol: t.symbol, dir: betDir, amount: stake, entry: t.price,
+    date: new Date().toISOString().slice(0, 10),
+    game: 'guess', hzKey: '1d', expiresAt: Date.now() + 86400000,
+  });
+  saveGarden();
+  sfx('pop');
+  toast(L().placed);
+  guessIdx++;
+  renderSeedBadges();
+  renderGardenBtn();
+  renderGuessGame();
+}
+
+/* ---------------- ⚡ cloud casino — bet the clouds, watch it in seconds ----- */
+let simBank = parseFloat(localStorage.getItem('simBank') || '1000');
+const simSel = new Set();
+
+// The betting legs a cloud creates: history-calibrated move per affected tree,
+// rule direction (±1.2%) as fallback while calibration is still loading.
+function cloudMoves(c) {
+  const out = [];
+  const topic = (c.topics || []).find(t => CAL && CAL[t]);
+  const cal = topic ? CAL[topic] : null;
+  for (const im of c.impacts) {
+    if (!im.dir) continue;
+    const mean = cal && cal.reactions[im.symbol] != null ? cal.reactions[im.symbol] : im.dir * 1.2;
+    out.push({ symbol: im.symbol, dir: im.dir, mean });
+  }
+  if (!out.length && (c.broad || c.political)) {
+    const broadDir = c.broad || 1;
+    for (const t of DATA.trees.slice(0, 6)) out.push({ symbol: t.symbol, dir: broadDir, mean: broadDir * 0.8 });
+  }
+  return out;
+}
+
+function renderSimSheet() {
+  const body = $('#simSheetBody');
+  const clouds = DATA ? (DATA.clouds || []) : [];
+  body.innerHTML = `
+    <div class="sim-bank">
+      <label for="simBankInput">💰 ${L().simBank}</label>
+      <input id="simBankInput" type="number" min="10" step="10" value="${Math.round(simBank)}" />
+      <button class="cp-btn ghost sim-reset" id="simResetBank">${L().simReset}</button>
+    </div>
+    <div class="sim-pick-h">${L().simPick}</div>
+    <div class="sim-clouds">${clouds.map((c, i) => {
+      const net = c.impacts.reduce((a, b) => a + b.dir, 0) + (c.broad || 0);
+      const dot = c.political ? '🟣' : net > 0 ? '🟢' : net < 0 ? '🔴' : '⚪';
+      return `<button class="sim-cloud ${simSel.has(i) ? 'on' : ''}" data-i="${i}">
+        <span>${dot} <b>${escapeHtml(c.topics[0] || '📰')}</b></span>
+        <span class="sim-cloud-t">${escapeHtml(c.title.slice(0, 52))}${c.title.length > 52 ? '…' : ''}</span>
+      </button>`;
+    }).join('')}</div>
+    <button class="cp-btn sim-run" id="simRunBtn">${L().simRun}</button>
+    <div class="sim-out" id="simOut"></div>
+    <p class="bets-note">${L().simNote}</p>`;
+  body.querySelectorAll('.sim-cloud').forEach(b => b.onclick = () => {
+    const i = +b.dataset.i;
+    simSel.has(i) ? simSel.delete(i) : simSel.add(i);
+    b.classList.toggle('on');
+  });
+  $('#simResetBank').onclick = () => {
+    simBank = 1000; localStorage.setItem('simBank', '1000');
+    $('#simBankInput').value = 1000; sfx('pop');
+  };
+  $('#simRunBtn').onclick = runSim;
+}
+
+async function runSim() {
+  const out = $('#simOut');
+  const picks = [...simSel].map(i => DATA.clouds[i]).filter(Boolean);
+  if (!picks.length) { out.innerHTML = `<p class="sim-warn">${L().simNoClouds}</p>`; return; }
+  simBank = Math.max(10, +$('#simBankInput').value || 1000);
+  const legs = picks.flatMap(cloudMoves);
+  if (!legs.length) { out.innerHTML = '<p class="sim-warn">🌫️</p>'; return; }
+  const btn = $('#simRunBtn');
+  btn.disabled = true;
+  out.innerHTML = `<div class="sim-rounds"></div><div class="sim-total"></div>`;
+  const roundsEl = out.querySelector('.sim-rounds'), totalEl = out.querySelector('.sim-total');
+  const stake = simBank;
+  let total = 0;
+  const N = 8;
+  const money = v => (v < 0 ? '−$' : '+$') + Math.abs(v).toFixed(1);
+  for (let r = 1; r <= N; r++) {
+    // one lightning round = one possible 3 days: historical mean rain + luck
+    const per = legs.map(l => l.dir * (l.mean + (Math.random() * 2 - 1) * Math.max(1.2, Math.abs(l.mean) * 1.5)));
+    const movePct = per.reduce((a, b) => a + b, 0) / per.length;
+    const pnl = stake * movePct / 100;
+    total += pnl;
+    roundsEl.insertAdjacentHTML('beforeend',
+      `<div class="sim-round ${pnl >= 0 ? 'up' : 'down'}">⚡ ${L().simRound} ${r}: <b>${money(pnl)}</b> <span>(${movePct >= 0 ? '+' : ''}${movePct.toFixed(2)}%)</span></div>`);
+    totalEl.innerHTML = `${L().simTotal}: <b class="${total >= 0 ? 'up' : 'down'}">${money(total)}</b>`;
+    sfx('pop');
+    await new Promise(res => setTimeout(res, 420));
+  }
+  simBank = Math.max(10, simBank + total / N); // bank moves by the AVERAGE round, not 8 stacked futures
+  localStorage.setItem('simBank', String(simBank));
+  totalEl.innerHTML = `${L().simTotal}: <b class="${total >= 0 ? 'up' : 'down'}">${money(total)}</b>
+    · ${L().simBankNow}: <b>$${simBank.toFixed(0)}</b>`;
+  $('#simBankInput').value = Math.round(simBank);
+  btn.disabled = false;
+}
+
+$('#simBtn').onclick = () => { renderSimSheet(); openSheet('simSheet'); };
 
 /* ---------------- panel plumbing + Escape ---------------- */
 function openPanel() { $('#cloudPanel').classList.add('open'); $('#cloudScrim').classList.add('on'); }
@@ -582,8 +1003,8 @@ function closePanel() {
   window.speechSynthesis && window.speechSynthesis.cancel();
 }
 $('#cpClose').onclick = closePanel;
-$('#cloudScrim').onclick = () => { closePanel(); closeSheet('newsSheet'); closeSheet('gardenSheet'); };
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closePanel(); closeSheet('newsSheet'); closeSheet('gardenSheet'); } });
+$('#cloudScrim').onclick = () => { closePanel(); closeSheet('newsSheet'); closeSheet('gardenSheet'); closeSheet('simSheet'); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closePanel(); closeSheet('newsSheet'); closeSheet('gardenSheet'); closeSheet('simSheet'); } });
 
 /* ---------------- tiny synth sound fx ---------------- */
 let AC = null, soundOn = true;

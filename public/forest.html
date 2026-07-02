@@ -41,6 +41,17 @@
   <div class="story-lines" id="storyLines"></div>
 </div>
 
+<!-- 🎯 my first $10 — beginner guessing game -->
+<div class="guess-strip" id="guessStrip" hidden>
+  <div class="guess-head">
+    <span class="guess-title" data-i18n="guessTitle">🎯 My first $10 — the guessing game</span>
+    <span class="guess-wallet" id="guessWallet"></span>
+  </div>
+  <p class="guess-sub" data-i18n="guessSub"></p>
+  <div id="guessBody"></div>
+  <div class="bets-note" data-i18n="guessNote"></div>
+</div>
+
 <!-- 🎲 suggested one-click plays -->
 <div class="bets-strip" id="betsStrip" hidden>
   <div class="bets-head" id="betsHead"></div>
@@ -61,6 +72,7 @@
     <span data-i18n="lg1">💧 waters</span><span data-i18n="lg2">☠️ poisons</span>
     <button id="newsListBtn" class="hud-btn">📰 <span data-i18n="newsList">news list</span></button>
     <button id="gardenBtn" class="hud-btn">🌱 <span data-i18n="garden">my garden</span> <b id="gardenScore">0</b></button>
+    <button id="simBtn" class="hud-btn hud-btn-sim">⚡ <span data-i18n="simBtn">cloud casino</span></button>
     <button id="soundToggle" class="snd-toggle" title="sound on/off">🔊</button>
   </div>
   <div class="timemachine">
@@ -86,6 +98,10 @@
 <div class="sheet" id="gardenSheet" role="dialog" aria-modal="true" aria-label="my garden">
   <div class="sheet-head"><span>🌱 <span data-i18n="gardenTitle">My garden — pretend seeds</span></span><button class="cp-close sheet-close" data-close="gardenSheet">✕</button></div>
   <div class="sheet-body" id="gardenSheetBody"></div>
+</div>
+<div class="sheet" id="simSheet" role="dialog" aria-modal="true" aria-label="cloud casino">
+  <div class="sheet-head"><span>⚡ <span data-i18n="simTitle">Cloud casino — bet the clouds, see it in seconds</span></span><button class="cp-close sheet-close" data-close="simSheet">✕</button></div>
+  <div class="sheet-body" id="simSheetBody"></div>
 </div>
 
 <!-- onboarding tour -->
