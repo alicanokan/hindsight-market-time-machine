@@ -331,9 +331,42 @@ input[type=date],input[type=number]{font-family:'Space Mono',monospace;font-size
 .drop{position:absolute;top:0;font-size:18px;animation:fall 1.8s ease-in forwards}
 @keyframes fall{0%{transform:translateY(-10px);opacity:0}15%{opacity:1}100%{transform:translateY(180px);opacity:0}}
 
+/* many families -> let the ground pan horizontally */
+.ground{justify-content:flex-start;gap:26px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;padding-left:16px;padding-right:16px}
+.ground::-webkit-scrollbar{height:8px}
+.ground::-webkit-scrollbar-thumb{background:#5c9e3a;border-radius:8px}
+.family-plot{flex:0 0 auto}
+
+/* per-tree weather (news forecast) */
+.tree-weather{position:absolute;top:-2px;left:50%;transform:translateX(-50%);font-size:18px;opacity:.55;
+  z-index:5;transition:.3s;pointer-events:none;filter:drop-shadow(1px 1px 0 rgba(0,0,0,.15))}
+.tree:hover .tree-weather{opacity:1;transform:translateX(-50%) scale(1.2)}
+
+/* forecast mode (slider pushed past NOW) */
+.forecast-mode{background:linear-gradient(#6a5aa8 0%,#8f7cc4 42%,#b9a9dd 60%,#c9b06b 100%)!important;
+  box-shadow:0 0 0 4px var(--purple),var(--shadow)}
+.forecast-mode .ground{background:linear-gradient(#9d86c9,#7d63b0);border-top-color:#5a3fb0}
+.forecast-mode::after{content:'🔮 FORECAST — possible futures';position:absolute;top:10px;left:50%;
+  transform:translateX(-50%);font-family:'Archivo Black',sans-serif;font-size:13px;color:#fff;
+  background:rgba(90,63,176,.85);padding:4px 12px;border-radius:100px;z-index:8}
+.forecast-mode .tree-weather{opacity:1;font-size:24px}
+.tree.ghost{opacity:.9}
+.tree.ghost .canopy{border-style:dashed}
+.tree.ghost .trunk{opacity:.7}
+
 /* HUD */
 .forest-hud{max-width:1200px;margin:14px auto;padding:0 24px;display:flex;flex-wrap:wrap;gap:14px;
   align-items:center;justify-content:space-between}
+.snd-toggle{font-size:14px;background:#fff;border:3px solid var(--ink);border-radius:100px;cursor:pointer;
+  width:34px;height:30px;line-height:1}
+.tm-label{font-family:'Archivo Black',sans-serif;font-size:11px;color:var(--yellow)}
+
+/* forecast panel bits */
+.fc-weather-big{font-size:26px}
+.fc-range{border:3px solid var(--ink);border-radius:12px;padding:12px;margin:10px 0 14px}
+.fc-good{background:#e4fbec}.fc-bad{background:#ffe7e4}.fc-neutral{background:#efeadf}
+.fc-base{font-family:'Archivo Black',sans-serif;font-size:20px;margin-bottom:4px}
+.fc-band{font-family:'Space Mono',monospace;font-size:12px;opacity:.75}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-family:'Space Mono',monospace;font-size:12px;font-weight:700}
 .legend span{background:#fff;border:3px solid var(--ink);border-radius:100px;padding:5px 11px}
 .timemachine{display:flex;align-items:center;gap:12px;background:var(--ink);color:var(--paper);

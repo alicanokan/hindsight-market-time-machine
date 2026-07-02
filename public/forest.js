@@ -27,7 +27,7 @@ function renderForest() {
   const ground = $('#ground');
   ground.innerHTML = '';
   // group trees by family, in a fixed order
-  const order = ['crypto', 'tech', 'auto', 'meme'];
+  const order = ['crypto', 'tech', 'auto', 'commodities', 'bonds', 'fx', 'meme'];
   for (const fam of order) {
     const info = DATA.families[fam];
     const members = DATA.trees.filter(t => t.family === fam);
@@ -48,15 +48,17 @@ function makeTree(t) {
   const wrap = el('div', 'tree');
   wrap.dataset.symbol = t.symbol;
   const up = (t.change ?? 0) >= 0;
+  const wx = t.forecast ? t.forecast.weather : '';
   wrap.innerHTML = `
     <div class="tree-fx"></div>
+    <div class="tree-weather" title="news forecast">${wx}</div>
     <div class="tree-top">
       <span class="tree-badge ${up ? 'up' : 'down'}">${pct(t.change)}</span>
       <div class="canopy"><span class="canopy-face">${t.char || '🌳'}</span></div>
       <div class="trunk"></div>
     </div>
     <div class="tree-label">${t.symbol}<span class="tree-price">${fmtMoney(t.price)}</span></div>`;
-  wrap.addEventListener('click', () => highlightFamily(t.family, t.symbol));
+  wrap.addEventListener('click', () => { highlightFamily(t.family, t.symbol); openTreePanel(t); sfx('pop'); });
   treeEls[t.symbol] = wrap;
   return wrap;
 }
@@ -93,7 +95,7 @@ function renderClouds() {
     const tag = c.topics[0] || (c.political ? 'Politics 🏛️' : '📰');
     cloud.innerHTML = `<span class="cloud-emoji">☁️</span><span class="cloud-tag">${tag}</span>`;
     cloud.title = c.title;
-    cloud.addEventListener('click', e => { e.stopPropagation(); openCloud(c, cloud); });
+    cloud.addEventListener('click', e => { e.stopPropagation(); sfx('rain'); openCloud(c, cloud); });
     sky.appendChild(cloud);
   });
 }
@@ -173,6 +175,72 @@ function speak(c) {
   window.speechSynthesis.speak(u);
 }
 
+/* ---------------- tree click → forecast panel ---------------- */
+function openTreePanel(t) {
+  const f = t.forecast;
+  const body = $('#cpBody');
+  if (!f) { body.innerHTML = `<h3 class="cp-title">${t.char} ${t.name}</h3><div class="cp-source">No forecast data.</div>`; }
+  else {
+    const arrow = f.base > 0 ? '▲' : f.base < 0 ? '▼' : '▶';
+    const sky = f.outlook > 0.15 ? 'good' : f.outlook < -0.15 ? 'bad' : 'neutral';
+    const drivers = f.drivers.length
+      ? f.drivers.map(d => `<div class="imp-row ${d.dir > 0 ? 'good' : 'bad'}"><span class="imp-ico">${d.dir > 0 ? '💧' : '☠️'}</span><div><b>${d.topic || 'news'}</b><div class="imp-why">${escapeHtml(d.why || '')}</div></div></div>`).join('')
+      : `<div class="imp-row neutral"><span class="imp-ico">🌫️</span><div>No strong news pushing this tree right now — mostly drifting on its own momentum.</div></div>`;
+    body.innerHTML = `
+      <div class="cp-topics"><span class="cp-topic">🔮 ${f.horizonDays}-day forecast</span></div>
+      <h3 class="cp-title">${t.char} ${escapeHtml(t.name)} <span class="fc-weather-big">${f.weather}</span></h3>
+      <div class="cp-source">now ${fmtMoney(t.price)} · outlook ${f.outlook > 0 ? '+' : ''}${f.outlook}</div>
+      <div class="fc-range fc-${sky}">
+        <div class="fc-base">${arrow} base case <b>${f.base > 0 ? '+' : ''}${f.base}%</b></div>
+        <div class="fc-band">range if the weather holds: <b>${f.low}%</b> … <b>+${f.high}%</b></div>
+      </div>
+      <div class="cp-impacts-h">What's bending its future</div>
+      ${drivers}
+      <div class="cp-note">💡 A <b>possibility</b>, not a prediction — today's news tilts the odds, but the future is unwritten.</div>
+      <div class="cp-actions"><button class="cp-btn" id="cpSpeak">🔊 Hear the forecast</button></div>`;
+    $('#cpSpeak').onclick = () => speakForecast(t);
+  }
+  $('#cloudPanel').classList.add('open');
+  $('#cloudScrim').classList.add('on');
+}
+
+function speakForecast(t) {
+  if (!('speechSynthesis' in window)) return;
+  const f = t.forecast; if (!f) return;
+  const dir = f.base > 0 ? 'lean up' : f.base < 0 ? 'lean down' : 'stay flat';
+  const parts = [`${t.name} forecast. The news weather looks ${f.weather === '☀️' ? 'sunny' : f.weather === '⛈️' ? 'stormy' : 'mixed'}.`,
+    `Over the next ${f.horizonDays} days it could ${dir}, around ${f.base} percent, somewhere between ${f.low} and plus ${f.high} percent.`];
+  for (const d of f.drivers) parts.push(`${d.dir > 0 ? 'Helped' : 'Hurt'} by ${d.why}.`);
+  parts.push('This is a possibility, not a prediction.');
+  const u = new SpeechSynthesisUtterance(parts.join(' ')); u.rate = 1.02;
+  window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
+}
+
+/* ---------------- tiny synth sound fx ---------------- */
+let AC = null, soundOn = true;
+function sfx(kind) {
+  if (!soundOn) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if (kind === 'rain') {
+      // short filtered-noise burst
+      const n = AC.sampleRate * 0.5, buf = AC.createBuffer(1, n, AC.sampleRate), dch = buf.getChannelData(0);
+      for (let i = 0; i < n; i++) dch[i] = (Math.random() * 2 - 1) * (1 - i / n);
+      const src = AC.createBufferSource(); src.buffer = buf;
+      const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1400;
+      const g = AC.createGain(); g.gain.value = 0.18;
+      src.connect(lp).connect(g).connect(AC.destination); src.start();
+    } else { // pop
+      const o = AC.createOscillator(), g = AC.createGain();
+      o.type = 'sine'; o.frequency.setValueAtTime(320, AC.currentTime);
+      o.frequency.exponentialRampToValueAtTime(680, AC.currentTime + 0.09);
+      g.gain.setValueAtTime(0.2, AC.currentTime); g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.18);
+      o.connect(g).connect(AC.destination); o.start(); o.stop(AC.currentTime + 0.2);
+    }
+  } catch (e) { /* audio not available */ }
+}
+$('#soundToggle').onclick = e => { soundOn = !soundOn; e.target.textContent = soundOn ? '🔊' : '🔇'; };
+
 function closePanel() {
   $('#cloudPanel').classList.remove('open');
   $('#cloudScrim').classList.remove('on');
@@ -181,33 +249,50 @@ function closePanel() {
 $('#cpClose').onclick = closePanel;
 $('#cloudScrim').onclick = closePanel;
 
-/* ---------------- time machine ---------------- */
+/* ---------------- time machine (past 0..100 = NOW, 100..140 = forecast) ------ */
 function updateTime(p) {
-  const frac = p / 100;
+  const future = p > 100;
+  const stage = $('#stage');
+  stage.classList.toggle('forecast-mode', future);
   let labelDate = 'NOW';
+
   for (const t of DATA.trees) {
     const s = t.spark;
     const tree = treeEls[t.symbol];
-    if (!tree) continue;
-    if (!s || !s.length) continue;
-    const idx = Math.round(frac * (s.length - 1));
+    if (!tree || !s || !s.length) continue;
     const prices = s.map(x => x.price);
     const min = Math.min(...prices), max = Math.max(...prices);
-    const norm = (s[idx].price - min) / ((max - min) || 1); // 0..1 within its own range
-    const h = 58 + norm * 150; // canopy lift
+    let shownPrice, norm, rising;
+
+    if (!future) {
+      const idx = Math.round((p / 100) * (s.length - 1));
+      shownPrice = s[idx].price;
+      norm = (shownPrice - min) / ((max - min) || 1);
+      rising = shownPrice >= s[0].price;
+      if (t.symbol === 'BTC') labelDate = new Date(s[idx].t).toISOString().slice(0, 10);
+    } else {
+      // project from NOW toward the forecast base over +30 days
+      const fk = (p - 100) / 40;                 // 0..1 across the future zone
+      const f = t.forecast;
+      const now = s[s.length - 1].price;
+      const target = f ? now * (1 + (f.base / 100)) : now;
+      shownPrice = now + (target - now) * fk;
+      const fullMin = Math.min(min, shownPrice), fullMax = Math.max(max, shownPrice);
+      norm = (shownPrice - fullMin) / ((fullMax - fullMin) || 1);
+      rising = f ? f.base >= 0 : true;
+      labelDate = '+' + Math.round(fk * 30) + 'd 🔮';
+    }
+
     const canopy = tree.querySelector('.canopy');
     canopy.style.transform = `translateY(${(1 - norm) * 46}px) scale(${0.7 + norm * 0.6})`;
-    tree.querySelector('.trunk').style.height = h * 0.5 + 'px';
-    // health vs start of window
-    const rising = s[idx].price >= s[0].price;
+    tree.querySelector('.trunk').style.height = (58 + norm * 150) * 0.5 + 'px';
     tree.classList.toggle('healthy', rising);
     tree.classList.toggle('wilting', !rising);
-    tree.querySelector('.tree-price').textContent = fmtMoney(s[idx].price);
-    if (t.symbol === 'BTC' || labelDate === 'NOW') {
-      if (p < 100) labelDate = new Date(s[idx].t).toISOString().slice(0, 10);
-    }
+    tree.classList.toggle('ghost', future);
+    tree.querySelector('.tree-price').textContent = fmtMoney(shownPrice);
   }
-  $('#timeDate').textContent = p >= 100 ? 'NOW' : labelDate;
+  $('#timeDate').textContent = p >= 100 && p <= 100 ? 'NOW' : (future ? labelDate : labelDate);
+  if (p === 100) $('#timeDate').textContent = 'NOW';
 }
 $('#timeSlider').addEventListener('input', e => updateTime(+e.target.value));
 

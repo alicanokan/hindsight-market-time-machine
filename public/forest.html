@@ -24,9 +24,10 @@
 </header>
 
 <p class="forest-intro">
-  Every <b>tree is an asset</b>, grouped into <b>families</b> (industries & coins). <b>News clouds</b> drift overhead —
-  <b>click a cloud</b> to see where its rain falls: 💧 <b>waters</b> (grows) or ☠️ <b>poisons</b> (wilts) which trees, and why.
-  Drag the <b>time machine</b> to watch the forest grow through the last 90 days.
+  Every <b>tree is an asset</b>, grouped into <b>families</b>. <b>News clouds</b> drift overhead —
+  <b>click a cloud</b> to see where its rain falls: 💧 <b>waters</b> or ☠️ <b>poisons</b> which trees, and why.
+  <b>Click a tree</b> for its news-driven <b>forecast</b>. Drag the <b>time machine</b> left into the <b>real past</b> (90 days)
+  or right past <b>NOW</b> into the <b>🔮 forecast</b> — where today's clouds bend each tree's future.
 </p>
 
 <div class="forest-stage" id="stage">
@@ -39,11 +40,13 @@
 
 <div class="forest-hud">
   <div class="legend">
-    <span>💧 waters = grows</span><span>☠️ poisons = wilts</span><span>👆 click a cloud</span><span>🌳 click a tree = its family</span>
+    <span>💧 waters</span><span>☠️ poisons</span><span>👆 click a cloud</span><span>🌳 click a tree = forecast</span>
+    <button id="soundToggle" class="snd-toggle" title="sound on/off">🔊</button>
   </div>
   <div class="timemachine">
-    <span class="tm-label">⏳ TIME MACHINE</span>
-    <input type="range" id="timeSlider" min="0" max="100" value="100" />
+    <span class="tm-label">⏳ PAST</span>
+    <input type="range" id="timeSlider" min="0" max="140" value="100" />
+    <span class="tm-label">🔮 FUTURE</span>
     <span class="tm-date" id="timeDate">NOW</span>
   </div>
 </div>

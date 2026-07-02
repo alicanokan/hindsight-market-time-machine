@@ -25,22 +25,40 @@ const UA = 'Mozilla/5.0 (compatible; HindsightApp/1.0; +local)';
 /* Asset catalog — the stuff a "for Dummies" user actually recognizes         */
 /* -------------------------------------------------------------------------- */
 const ASSETS = {
+  // Crypto Grove
   BTC:  { name: 'Bitcoin',  type: 'crypto', id: 'bitcoin',  query: 'bitcoin',  emoji: '₿', char: '🟠', family: 'crypto', color: '#f7931a' },
   ETH:  { name: 'Ethereum', type: 'crypto', id: 'ethereum', query: 'ethereum', emoji: '◆', char: '🔷', family: 'crypto', color: '#627eea' },
   SOL:  { name: 'Solana',   type: 'crypto', id: 'solana',   query: 'solana crypto', emoji: '◎', char: '🟣', family: 'crypto', color: '#14f195' },
   DOGE: { name: 'Dogecoin', type: 'crypto', id: 'dogecoin', query: 'dogecoin', emoji: '🐕', char: '🐕', family: 'crypto', color: '#c2a633' },
+  // Silicon Forest
   AAPL: { name: 'Apple',    type: 'stock',  id: 'AAPL',     query: 'apple stock', emoji: '🍎', char: '🍎', family: 'tech', color: '#a2aaad' },
-  TSLA: { name: 'Tesla',    type: 'stock',  id: 'TSLA',     query: 'tesla stock', emoji: '⚡', char: '🚗', family: 'auto', color: '#e82127' },
   NVDA: { name: 'Nvidia',   type: 'stock',  id: 'NVDA',     query: 'nvidia stock', emoji: '🎮', char: '🎮', family: 'tech', color: '#76b900' },
+  MSFT: { name: 'Microsoft',type: 'stock',  id: 'MSFT',     query: 'microsoft stock', emoji: '🪟', char: '🪟', family: 'tech', color: '#00a4ef' },
+  GOOGL:{ name: 'Google',   type: 'stock',  id: 'GOOGL',    query: 'google alphabet stock', emoji: '🔍', char: '🔍', family: 'tech', color: '#4285f4' },
+  // EV Meadow
+  TSLA: { name: 'Tesla',    type: 'stock',  id: 'TSLA',     query: 'tesla stock', emoji: '⚡', char: '🚗', family: 'auto', color: '#e82127' },
+  // Commodity Quarry
+  GOLD: { name: 'Gold',     type: 'commodity', id: 'GC=F',  query: 'gold price', emoji: '🥇', char: '🥇', family: 'commodities', color: '#d4af37' },
+  OIL:  { name: 'Crude Oil',type: 'commodity', id: 'CL=F',  query: 'oil price OPEC crude', emoji: '🛢️', char: '🛢️', family: 'commodities', color: '#3d3d3d' },
+  // Bond Bedrock
+  TLT:  { name: 'US Treasuries', type: 'bond', id: 'TLT',   query: 'treasury bonds yields', emoji: '🏦', char: '🏦', family: 'bonds', color: '#5c7cfa' },
+  // Currency River (FX quoted USD/local -> inverted so the tree = the currency's strength)
+  TRY:  { name: 'Turkish Lira',  type: 'fx', id: 'TRY=X',   query: 'turkish lira turkey economy', emoji: '🇹🇷', char: '🇹🇷', family: 'fx', invert: true, color: '#e30a17' },
+  EUR:  { name: 'Euro',          type: 'fx', id: 'EURUSD=X',query: 'euro dollar ECB', emoji: '🇪🇺', char: '🇪🇺', family: 'fx', color: '#0052b4' },
+  RUB:  { name: 'Russian Ruble', type: 'fx', id: 'RUB=X',   query: 'russian ruble sanctions', emoji: '🇷🇺', char: '🇷🇺', family: 'fx', invert: true, color: '#0033a0' },
+  // Meme Thicket
   GME:  { name: 'GameStop', type: 'stock',  id: 'GME',      query: 'gamestop stock', emoji: '🎯', char: '🎯', family: 'meme', color: '#e31837' },
 };
 
 /* Tree families (the "forest" game view groups assets into these).            */
 const FAMILIES = {
-  crypto: { label: 'Crypto Grove',   emoji: '🌴', blurb: 'Coins & tokens — wildest weather in the forest' },
-  tech:   { label: 'Silicon Forest', emoji: '🌲', blurb: 'Big Tech — the tall old trees' },
-  auto:   { label: 'EV Meadow',      emoji: '🌱', blurb: 'Cars, batteries & energy' },
-  meme:   { label: 'Meme Thicket',   emoji: '🍄', blurb: 'Retail-driven wild plants' },
+  crypto:      { label: 'Crypto Grove',     emoji: '🌴', blurb: 'Coins & tokens — wildest weather in the forest' },
+  tech:        { label: 'Silicon Forest',   emoji: '🌲', blurb: 'Big Tech — the tall old trees' },
+  auto:        { label: 'EV Meadow',        emoji: '🌱', blurb: 'Cars, batteries & energy' },
+  commodities: { label: 'Commodity Quarry', emoji: '⛏️', blurb: 'Gold & oil — dug from the ground' },
+  bonds:       { label: 'Bond Bedrock',     emoji: '🪨', blurb: 'Government bonds — the slow bedrock' },
+  fx:          { label: 'Currency River',   emoji: '💱', blurb: 'Currencies flowing against the dollar' },
+  meme:        { label: 'Meme Thicket',     emoji: '🍄', blurb: 'Retail-driven wild plants' },
 };
 
 /* Curated / typical catalysts. Honest: these are *typical* recurring events,   */
@@ -201,13 +219,14 @@ async function getQuote(asset) {
     const change = prev ? ((last.price - prev.price) / prev.price) * 100 : null;
     return { price: last.price, change24h: change, currency: 'USD', derived: true };
   } else {
-    const u = `https://query1.finance.yahoo.com/v8/finance/chart/${asset.id}?range=5d&interval=1d`;
+    const u = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(asset.id)}?range=5d&interval=1d`;
     const j = await fetchJSON(u, 30000);
     const m = j.chart?.result?.[0]?.meta || {};
-    const price = m.regularMarketPrice ?? null;
-    const prev = m.chartPreviousClose ?? m.previousClose ?? null;
+    let price = m.regularMarketPrice ?? null;
+    let prev = m.chartPreviousClose ?? m.previousClose ?? null;
+    if (asset.invert) { if (price) price = 1 / price; if (prev) prev = 1 / prev; }
     const change = (price != null && prev) ? ((price - prev) / prev) * 100 : null;
-    return { price, change24h: change, currency: m.currency || 'USD' };
+    return { price, change24h: change, currency: asset.invert ? 'USD' : (m.currency || 'USD') };
   }
 }
 
@@ -232,13 +251,15 @@ async function getHistory(asset, days = 365) {
     }
     if (!pts.length) throw httpErr(502, 'price history temporarily unavailable');
     const want = Math.min(days, CRYPTO_MAX_DAYS);
-    if (want >= CRYPTO_MAX_DAYS) return pts;
-    const cutoff = Date.now() - want * 86400000;
-    return pts.filter(p => p.t >= cutoff);
+    if (want < CRYPTO_MAX_DAYS) {
+      const cutoff = Date.now() - want * 86400000;
+      pts = pts.filter(p => p.t >= cutoff);
+    }
+    return maybeInvert(asset, pts);
   } else {
     const range = days <= 5 ? '5d' : days <= 30 ? '1mo' : days <= 90 ? '3mo' : days <= 180 ? '6mo'
       : days <= 365 ? '1y' : days <= 730 ? '2y' : '5y';
-    const u = `https://query1.finance.yahoo.com/v8/finance/chart/${asset.id}?range=${range}&interval=1d`;
+    const u = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(asset.id)}?range=${range}&interval=1d`;
     const j = await fetchJSON(u, 5 * 60000);
     const r = j.chart?.result?.[0];
     const ts = r?.timestamp || [];
@@ -247,8 +268,15 @@ async function getHistory(asset, days = 365) {
     for (let i = 0; i < ts.length; i++) {
       if (closes[i] != null) out.push({ t: ts[i] * 1000, price: closes[i] });
     }
-    return out;
+    return maybeInvert(asset, out);
   }
+}
+
+// FX pairs quoted USD/local (invert:true) become "value of 1 unit in USD" so the
+// tree grows when the currency STRENGTHENS.
+function maybeInvert(asset, pts) {
+  if (!asset.invert) return pts;
+  return pts.map(p => ({ t: p.t, price: p.price ? 1 / p.price : p.price }));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -343,11 +371,11 @@ const IMPACT_RULES = [
   { re: /\btariff|trade war|import tax|customs duty|levy on\b/i, topic: 'Tariffs 🏭', broad: -1,
     effects: [['AAPL', -1, 'huge China supply chain — tariffs raise its costs'], ['NVDA', -1, 'China export exposure'], ['TSLA', -1, 'global supply chain & China sales hit']] },
   { re: /\brate cut|dovish|cut rates|lower rates|easing cycle|pivot\b/i, topic: 'Rate-cut hopes 🕊️', broad: 1,
-    effects: [['BTC', 1, 'cheaper money floods into risk assets'], ['ETH', 1, 'risk-on liquidity'], ['SOL', 1, 'risk-on liquidity'], ['NVDA', 1, 'growth stocks love low rates'], ['TSLA', 1, 'growth stocks love low rates']] },
+    effects: [['BTC', 1, 'cheaper money floods into risk assets'], ['ETH', 1, 'risk-on liquidity'], ['SOL', 1, 'risk-on liquidity'], ['NVDA', 1, 'growth stocks love low rates'], ['TSLA', 1, 'growth stocks love low rates'], ['TLT', 1, 'bond prices rise as yields fall'], ['GOLD', 1, 'lower real yields lift gold']] },
   { re: /\brate hike|hawkish|raise rates|higher for longer|tighten/i, topic: 'Rate hikes 🦅', broad: -1,
-    effects: [['BTC', -1, 'pricier money pulls cash out of risk'], ['ETH', -1, 'risk-off drain'], ['NVDA', -1, 'high rates squeeze growth valuations'], ['TSLA', -1, 'high rates squeeze growth valuations']] },
+    effects: [['BTC', -1, 'pricier money pulls cash out of risk'], ['ETH', -1, 'risk-off drain'], ['NVDA', -1, 'high rates squeeze growth valuations'], ['TSLA', -1, 'high rates squeeze growth valuations'], ['TLT', -1, 'bond prices fall as yields rise'], ['GOLD', -1, 'higher yields hurt gold'], ['TRY', -1, 'strong dollar pressures the lira'], ['RUB', -1, 'strong dollar pressures EM currencies']] },
   { re: /\b(hot |rising )?inflation|cpi|pce|prices? (rose|jump|surge)/i, topic: 'Inflation 🔥', broad: -1,
-    effects: [['BTC', -1, 'hot inflation delays rate cuts'], ['NVDA', -1, 'pressures growth multiples'], ['TSLA', -1, 'pressures growth multiples']] },
+    effects: [['BTC', -1, 'hot inflation delays rate cuts'], ['NVDA', -1, 'pressures growth multiples'], ['TSLA', -1, 'pressures growth multiples'], ['GOLD', 1, 'classic inflation hedge'], ['TLT', -1, 'inflation erodes fixed coupons']] },
   { re: /\bspot etf|etf (approv|inflow|launch)|etf flows\b/i, topic: 'ETF flows 💰',
     effects: [['BTC', 1, 'ETF buying = fresh demand'], ['ETH', 1, 'ETF buying = fresh demand']] },
   { re: /\bhalving\b/i, topic: 'Halving ⛏️', effects: [['BTC', 1, 'new supply issuance cut in half']] },
@@ -362,11 +390,30 @@ const IMPACT_RULES = [
   { re: /\bshort squeeze|meme stock|roaring kitty|keith gill|to the moon\b/i, topic: 'Meme squeeze 🚀', effects: [['GME', 1, 'retail piling in']] },
   { re: /\btrump|maga|white house|president|congress|senate|biden\b/i, topic: 'Politics 🏛️', political: true,
     note: 'political headlines cut both ways — a supporter saying "avoid US markets" is a conflicting signal worth watching' },
-  { re: /\bwar|conflict|invasion|missile|sanction|geopolit|military strike\b/i, topic: 'Geopolitics 💥', broad: -1,
-    effects: [['BTC', -1, 'risk-off, investors flee'], ['NVDA', -1, 'risk-off'], ['TSLA', -1, 'risk-off'], ['AAPL', -1, 'risk-off']] },
+  { re: /\bwar|conflict|invasion|missile|geopolit|military strike\b/i, topic: 'Geopolitics 💥', broad: -1,
+    effects: [['BTC', -1, 'risk-off, investors flee'], ['NVDA', -1, 'risk-off'], ['TSLA', -1, 'risk-off'], ['AAPL', -1, 'risk-off'], ['GOLD', 1, 'safe-haven demand'], ['OIL', 1, 'supply-shock fears push oil up']] },
+  { re: /\bsanction/i, topic: 'Sanctions 🚫', broad: -1,
+    effects: [['RUB', -1, 'sanctions choke the ruble'], ['OIL', 1, 'supply worries lift oil'], ['GOLD', 1, 'safe-haven bid']] },
+  { re: /\bopec|oil (supply|output|cut|glut)|crude (surge|jump)|barrel\b/i, topic: 'Oil supply ⛽', effects: [['OIL', 1, 'supply/OPEC dynamics move crude']] },
+  { re: /\bsafe[- ]haven|flight to safety|gold (rally|record|surge|hits)/i, topic: 'Safe haven 🥇', effects: [['GOLD', 1, 'fear drives money into gold']] },
+  { re: /\bstrong dollar|dollar (surge|soar|strengthen|rally)|dxy (rise|surge)|greenback\b/i, topic: 'Strong dollar 💵', broad: -1,
+    effects: [['TRY', -1, 'a strong dollar weakens the lira'], ['RUB', -1, 'a strong dollar weakens the ruble'], ['EUR', -1, 'euro slips vs the dollar'], ['GOLD', -1, 'gold priced in dollars gets pricier abroad']] },
+  { re: /\bturkey|turkish|lira|erdogan\b/i, topic: 'Turkey 🇹🇷', mentioned: 0, note: 'Turkey-specific: watch the central bank & inflation — foreign inflows can prop the lira, capital flight sinks it' },
   { re: /\brally|surge|soar|record high|all-time high|rockets?\b/i, topic: 'Momentum 📈', mentioned: 1, mentionedWhy: 'strong upward momentum' },
   { re: /\bcrash|plunge|selloff|sell-off|tumble|collapse|bloodbath\b/i, topic: 'Selloff 📉', mentioned: -1, mentionedWhy: 'sharp price drop / fear' },
 ];
+
+// Extra words that should map a headline to an asset (beyond its name/symbol).
+const ASSET_ALIASES = {
+  GOLD: ['gold', 'bullion', 'xau'],
+  OIL: ['oil', 'crude', 'opec', 'brent', 'wti', 'barrel'],
+  TLT: ['treasur', 'bond', 'yields', '10-year', '10 year', 'fixed income'],
+  TRY: ['lira', 'turkey', 'turkish', 'erdogan'],
+  EUR: ['euro', 'eurozone', 'ecb'],
+  RUB: ['ruble', 'rouble', 'russia', 'kremlin', 'moscow'],
+  GOOGL: ['google', 'alphabet'],
+  MSFT: ['microsoft'],
+};
 
 // Which of our named assets does a headline explicitly mention?
 function detectAssets(text) {
@@ -374,7 +421,8 @@ function detectAssets(text) {
   const found = [];
   for (const [sym, a] of Object.entries(ASSETS)) {
     const nm = a.name.toLowerCase();
-    if (t.includes(nm) || new RegExp(`\\b${sym.toLowerCase()}\\b`).test(t)) found.push(sym);
+    const aliases = ASSET_ALIASES[sym] || [];
+    if (t.includes(nm) || new RegExp(`\\b${sym.toLowerCase()}\\b`).test(t) || aliases.some(w => t.includes(w))) found.push(sym);
   }
   return found;
 }
@@ -739,32 +787,45 @@ const api = {
     return { asset, windowDays, realChangePct, pundits };
   },
 
-  // The game-view data: trees (assets, with a growth sparkline) + families +
-  // news clouds annotated with impact analysis (which trees they rain on).
+  // The game-view data: trees (assets, growth sparkline + a news-driven future
+  // forecast) + families + news clouds annotated with impact analysis.
   async forest() {
     const cached = cacheGet('forest:v1');
     if (cached) return cached;
 
+    // Trees: one history call each; derive current price + daily change + spark.
     const syms = Object.keys(ASSETS);
     const trees = await Promise.all(syms.map(async sym => {
       const asset = resolveAsset(sym);
       let price = null, change = null, spark = [];
-      try { const q = await getQuote(asset); price = q.price; change = q.change24h; } catch (e) { /* tree still shows */ }
       try {
         const h = await getHistory(asset, 90);
-        const step = Math.max(1, Math.floor(h.length / 40));
-        spark = h.filter((_, i) => i % step === 0).map(p => ({ t: p.t, price: p.price }));
-      } catch (e) { /* no sparkline is ok */ }
+        if (h.length) {
+          price = h[h.length - 1].price;
+          const prev = h[h.length - 2]?.price;
+          change = prev ? ((price - prev) / prev) * 100 : null;
+          const step = Math.max(1, Math.floor(h.length / 40));
+          spark = h.filter((_, i) => i % step === 0).map(p => ({ t: p.t, price: p.price }));
+          const lastH = h[h.length - 1];
+          if (spark[spark.length - 1]?.t !== lastH.t) spark.push({ t: lastH.t, price: lastH.price });
+        }
+      } catch (e) { /* tree still shows, just no growth/forecast */ }
       return { symbol: sym, name: asset.name, emoji: asset.emoji, char: asset.char, type: asset.type, family: asset.family, price, change, spark };
     }));
 
-    // Broad, multi-angle news to fill the sky with clouds.
-    const queries = ['stock market OR nasdaq OR dow jones OR federal reserve', 'bitcoin OR crypto OR ethereum', 'trump economy OR tariffs OR election markets'];
+    // Broad, multi-angle news to fill the sky with clouds (covers all families).
+    const queries = [
+      'stock market OR nasdaq OR dow jones OR federal reserve',
+      'bitcoin OR crypto OR ethereum',
+      'trump economy OR tariffs OR election markets',
+      'gold price OR oil price OR OPEC OR commodities',
+      'turkish lira OR euro dollar OR ruble OR emerging markets OR treasury yields',
+    ];
     const items = [];
     for (const q of queries) {
       try {
         const u = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`;
-        items.push(...parseFeed(await fetchText(u, 5 * 60000)).slice(0, 18));
+        items.push(...parseFeed(await fetchText(u, 5 * 60000)).slice(0, 15));
       } catch (e) { /* one query failing is fine */ }
     }
 
@@ -775,11 +836,60 @@ const api = {
       if (!key || seen.has(key)) continue;
       seen.add(key);
       const a = analyzeHeadline(it.title);
-      if (!a.impacts.length && !a.political && !a.topics.length) continue; // skip clouds with no mapping
+      if (!a.impacts.length && !a.political && !a.topics.length) continue;
       clouds.push({
         title: it.title, link: it.link, source: it.source || sourceFromTitle(it.title) || 'news',
         topics: a.topics, impacts: a.impacts, broad: a.broad, political: a.political, note: a.note, tone: a.tone,
       });
+    }
+
+    // --- News "climate" per tree: net *specific* pressure from clouds, plus a
+    // single market-wide "broad mood" applied once (so one risk-off day doesn't
+    // flatten every tree to the same storm). --------------------------------
+    const climate = {};   // specific impacts only
+    const drivers = {};
+    for (const c of clouds) {
+      for (const im of c.impacts) {
+        climate[im.symbol] = (climate[im.symbol] || 0) + im.dir;
+        (drivers[im.symbol] = drivers[im.symbol] || []).push({ dir: im.dir, why: im.why, topic: c.topics[0] || '', title: c.title });
+      }
+    }
+    const broadMood = clouds.length ? clouds.reduce((a, c) => a + (c.broad || 0), 0) / clouds.length : 0;
+
+    // --- Forecast per tree: momentum + news climate + volatility cone. --------
+    const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+    const tanh = x => Math.tanh(x);
+    for (const t of trees) {
+      const prices = (t.spark || []).map(p => p.price).filter(Boolean);
+      if (prices.length < 4) { t.forecast = null; continue; }
+      const rets = [];
+      for (let i = 1; i < prices.length; i++) rets.push(Math.log(prices[i] / prices[i - 1]));
+      const mean = rets.reduce((a, b) => a + b, 0) / rets.length;
+      const varr = rets.reduce((a, b) => a + (b - mean) ** 2, 0) / rets.length;
+      const sigmaStep = Math.sqrt(varr);
+      const stepDays = 90 / Math.max(1, prices.length - 1);
+      const dailyVol = sigmaStep / Math.sqrt(Math.max(1, stepDays));
+      const H = 30;
+      const band = dailyVol * Math.sqrt(H);                        // 1σ over 30d (log)
+      const last = prices[prices.length - 1];
+      const wk = prices[Math.max(0, prices.length - 5)];
+      const momentum = wk ? (last / wk - 1) : 0;                   // recent trend
+      const specific = climate[t.symbol] || 0;
+      const newsPressure = clamp(specific / 4 + broadMood * 0.6, -1.2, 1.2);
+      const outlook = clamp(tanh(newsPressure * 1.0 + momentum * 2.0), -1, 1);
+      const drift = outlook * band * 0.8;
+      const pctOf = x => +((Math.exp(x) - 1) * 100).toFixed(1);
+      const weather = outlook > 0.45 ? '☀️' : outlook > 0.15 ? '🌤️' : outlook > -0.15 ? '⛅' : outlook > -0.45 ? '🌧️' : '⛈️';
+      const ds = (drivers[t.symbol] || []);
+      const topDrivers = [...new Map(ds.map(d => [d.why, d])).values()]
+        .sort((a, b) => Math.abs(b.dir) - Math.abs(a.dir)).slice(0, 3)
+        .map(d => ({ dir: d.dir, why: d.why, topic: d.topic }));
+      t.forecast = {
+        outlook: +outlook.toFixed(2), weather, horizonDays: H,
+        base: pctOf(drift), low: pctOf(drift - band), high: pctOf(drift + band),
+        newsScore: +(climate[t.symbol] || 0).toFixed(1),
+        drivers: topDrivers,
+      };
     }
 
     // Landmarks: topics that dominate the sky become forest landmarks.
@@ -789,9 +899,10 @@ const api = {
     if ((topicCount['Politics 🏛️'] || 0) >= 2) landmarks.push({ id: 'trump-tower', emoji: '🏛️', label: 'Politics Tower', count: topicCount['Politics 🏛️'] });
     if ((topicCount['AI boom 🤖'] || 0) >= 2) landmarks.push({ id: 'ai-lab', emoji: '🤖', label: 'AI Lab', count: topicCount['AI boom 🤖'] });
     if ((topicCount['Geopolitics 💥'] || 0) >= 2) landmarks.push({ id: 'storm', emoji: '⛈️', label: 'Geopolitics Storm', count: topicCount['Geopolitics 💥'] });
+    if ((topicCount['Oil supply ⛽'] || 0) >= 2) landmarks.push({ id: 'rig', emoji: '🛢️', label: 'Oil Derrick', count: topicCount['Oil supply ⛽'] });
 
-    const result = { families: FAMILIES, trees, clouds: clouds.slice(0, 40), landmarks, topicCount };
-    cacheSet('forest:v1', result, 120000); // reuse for 2 min — this endpoint is heavy
+    const result = { families: FAMILIES, trees, clouds: clouds.slice(0, 44), landmarks, topicCount };
+    cacheSet('forest:v1', result, 120000);
     return result;
   },
 };
