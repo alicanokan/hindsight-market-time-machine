@@ -25,14 +25,22 @@ const UA = 'Mozilla/5.0 (compatible; HindsightApp/1.0; +local)';
 /* Asset catalog — the stuff a "for Dummies" user actually recognizes         */
 /* -------------------------------------------------------------------------- */
 const ASSETS = {
-  BTC:  { name: 'Bitcoin',  type: 'crypto', id: 'bitcoin',  query: 'bitcoin',  emoji: '₿', color: '#f7931a' },
-  ETH:  { name: 'Ethereum', type: 'crypto', id: 'ethereum', query: 'ethereum', emoji: '◆', color: '#627eea' },
-  SOL:  { name: 'Solana',   type: 'crypto', id: 'solana',   query: 'solana crypto', emoji: '◎', color: '#14f195' },
-  DOGE: { name: 'Dogecoin', type: 'crypto', id: 'dogecoin', query: 'dogecoin', emoji: '🐕', color: '#c2a633' },
-  AAPL: { name: 'Apple',    type: 'stock',  id: 'AAPL',     query: 'apple stock', emoji: '', color: '#a2aaad' },
-  TSLA: { name: 'Tesla',    type: 'stock',  id: 'TSLA',     query: 'tesla stock', emoji: '⚡', color: '#e82127' },
-  NVDA: { name: 'Nvidia',   type: 'stock',  id: 'NVDA',     query: 'nvidia stock', emoji: '🎮', color: '#76b900' },
-  GME:  { name: 'GameStop', type: 'stock',  id: 'GME',      query: 'gamestop stock', emoji: '🎯', color: '#e31837' },
+  BTC:  { name: 'Bitcoin',  type: 'crypto', id: 'bitcoin',  query: 'bitcoin',  emoji: '₿', char: '🟠', family: 'crypto', color: '#f7931a' },
+  ETH:  { name: 'Ethereum', type: 'crypto', id: 'ethereum', query: 'ethereum', emoji: '◆', char: '🔷', family: 'crypto', color: '#627eea' },
+  SOL:  { name: 'Solana',   type: 'crypto', id: 'solana',   query: 'solana crypto', emoji: '◎', char: '🟣', family: 'crypto', color: '#14f195' },
+  DOGE: { name: 'Dogecoin', type: 'crypto', id: 'dogecoin', query: 'dogecoin', emoji: '🐕', char: '🐕', family: 'crypto', color: '#c2a633' },
+  AAPL: { name: 'Apple',    type: 'stock',  id: 'AAPL',     query: 'apple stock', emoji: '🍎', char: '🍎', family: 'tech', color: '#a2aaad' },
+  TSLA: { name: 'Tesla',    type: 'stock',  id: 'TSLA',     query: 'tesla stock', emoji: '⚡', char: '🚗', family: 'auto', color: '#e82127' },
+  NVDA: { name: 'Nvidia',   type: 'stock',  id: 'NVDA',     query: 'nvidia stock', emoji: '🎮', char: '🎮', family: 'tech', color: '#76b900' },
+  GME:  { name: 'GameStop', type: 'stock',  id: 'GME',      query: 'gamestop stock', emoji: '🎯', char: '🎯', family: 'meme', color: '#e31837' },
+};
+
+/* Tree families (the "forest" game view groups assets into these).            */
+const FAMILIES = {
+  crypto: { label: 'Crypto Grove',   emoji: '🌴', blurb: 'Coins & tokens — wildest weather in the forest' },
+  tech:   { label: 'Silicon Forest', emoji: '🌲', blurb: 'Big Tech — the tall old trees' },
+  auto:   { label: 'EV Meadow',      emoji: '🌱', blurb: 'Cars, batteries & energy' },
+  meme:   { label: 'Meme Thicket',   emoji: '🍄', blurb: 'Retail-driven wild plants' },
 };
 
 /* Curated / typical catalysts. Honest: these are *typical* recurring events,   */
@@ -324,6 +332,80 @@ function biasFor(source) {
 function sourceFromTitle(title) {
   const m = (title || '').match(/\s-\s([^-]+)$/);
   return m ? m[1].trim() : '';
+}
+
+/* -------------------------------------------------------------------------- */
+/* Impact engine — "if you click this news cloud, where does the rain fall?"   */
+/* Heuristic keyword rules mapping a headline's topic to affected assets,      */
+/* a direction (+1 waters/grows, -1 poisons), and a plain-language reason.     */
+/* -------------------------------------------------------------------------- */
+const IMPACT_RULES = [
+  { re: /\btariff|trade war|import tax|customs duty|levy on\b/i, topic: 'Tariffs 🏭', broad: -1,
+    effects: [['AAPL', -1, 'huge China supply chain — tariffs raise its costs'], ['NVDA', -1, 'China export exposure'], ['TSLA', -1, 'global supply chain & China sales hit']] },
+  { re: /\brate cut|dovish|cut rates|lower rates|easing cycle|pivot\b/i, topic: 'Rate-cut hopes 🕊️', broad: 1,
+    effects: [['BTC', 1, 'cheaper money floods into risk assets'], ['ETH', 1, 'risk-on liquidity'], ['SOL', 1, 'risk-on liquidity'], ['NVDA', 1, 'growth stocks love low rates'], ['TSLA', 1, 'growth stocks love low rates']] },
+  { re: /\brate hike|hawkish|raise rates|higher for longer|tighten/i, topic: 'Rate hikes 🦅', broad: -1,
+    effects: [['BTC', -1, 'pricier money pulls cash out of risk'], ['ETH', -1, 'risk-off drain'], ['NVDA', -1, 'high rates squeeze growth valuations'], ['TSLA', -1, 'high rates squeeze growth valuations']] },
+  { re: /\b(hot |rising )?inflation|cpi|pce|prices? (rose|jump|surge)/i, topic: 'Inflation 🔥', broad: -1,
+    effects: [['BTC', -1, 'hot inflation delays rate cuts'], ['NVDA', -1, 'pressures growth multiples'], ['TSLA', -1, 'pressures growth multiples']] },
+  { re: /\bspot etf|etf (approv|inflow|launch)|etf flows\b/i, topic: 'ETF flows 💰',
+    effects: [['BTC', 1, 'ETF buying = fresh demand'], ['ETH', 1, 'ETF buying = fresh demand']] },
+  { re: /\bhalving\b/i, topic: 'Halving ⛏️', effects: [['BTC', 1, 'new supply issuance cut in half']] },
+  { re: /\bhack|exploit|stolen|breach|drained|rug ?pull\b/i, topic: 'Hack 🚨', mentioned: -1, mentionedWhy: 'a security breach spooks holders' },
+  { re: /\bsec |lawsuit|sues|charged|fraud|probe|investigat|subpoena\b/i, topic: 'Legal trouble ⚖️', mentioned: -1, mentionedWhy: 'regulatory / legal overhang' },
+  { re: /\bbans?\b|\bbanned\b|crackdown|\billegal\b|outlaw/i, topic: 'Crackdown 🚫', broad: -1,
+    effects: [['BTC', -1, 'regulatory clampdown'], ['ETH', -1, 'regulatory clampdown'], ['SOL', -1, 'regulatory clampdown'], ['DOGE', -1, 'regulatory clampdown']] },
+  { re: /\biphone|apple event|wwdc|app store|vision pro|macbook\b/i, topic: 'Apple hype 🍎', effects: [['AAPL', 1, 'product-cycle excitement']] },
+  { re: /\bai |artificial intelligence|data ?cent|gpu|chip|blackwell|h100|inference\b/i, topic: 'AI boom 🤖', effects: [['NVDA', 1, 'more AI = more chips sold']] },
+  { re: /\brecall|delivery miss|autopilot crash|robotaxi delay|tesla strike|demand slump\b/i, topic: 'Tesla trouble 🚗', effects: [['TSLA', -1, 'operational / demand worries']] },
+  { re: /\brobotaxi launch|record deliver|gigafactory|fsd\b/i, topic: 'Tesla momentum ⚡', effects: [['TSLA', 1, 'growth catalyst']] },
+  { re: /\bshort squeeze|meme stock|roaring kitty|keith gill|to the moon\b/i, topic: 'Meme squeeze 🚀', effects: [['GME', 1, 'retail piling in']] },
+  { re: /\btrump|maga|white house|president|congress|senate|biden\b/i, topic: 'Politics 🏛️', political: true,
+    note: 'political headlines cut both ways — a supporter saying "avoid US markets" is a conflicting signal worth watching' },
+  { re: /\bwar|conflict|invasion|missile|sanction|geopolit|military strike\b/i, topic: 'Geopolitics 💥', broad: -1,
+    effects: [['BTC', -1, 'risk-off, investors flee'], ['NVDA', -1, 'risk-off'], ['TSLA', -1, 'risk-off'], ['AAPL', -1, 'risk-off']] },
+  { re: /\brally|surge|soar|record high|all-time high|rockets?\b/i, topic: 'Momentum 📈', mentioned: 1, mentionedWhy: 'strong upward momentum' },
+  { re: /\bcrash|plunge|selloff|sell-off|tumble|collapse|bloodbath\b/i, topic: 'Selloff 📉', mentioned: -1, mentionedWhy: 'sharp price drop / fear' },
+];
+
+// Which of our named assets does a headline explicitly mention?
+function detectAssets(text) {
+  const t = (text || '').toLowerCase();
+  const found = [];
+  for (const [sym, a] of Object.entries(ASSETS)) {
+    const nm = a.name.toLowerCase();
+    if (t.includes(nm) || new RegExp(`\\b${sym.toLowerCase()}\\b`).test(t)) found.push(sym);
+  }
+  return found;
+}
+
+// Read one headline → { topics, impacts:[{symbol,dir,why}], broad, political }
+function analyzeHeadline(title) {
+  const mentioned = detectAssets(title);
+  const topics = [], raw = [];
+  let broad = 0, political = false, note = null;
+  for (const rule of IMPACT_RULES) {
+    if (!rule.re.test(title)) continue;
+    topics.push(rule.topic);
+    if (rule.broad) broad += rule.broad;
+    if (rule.political) political = true;
+    if (rule.note) note = rule.note;
+    if (rule.effects) for (const [symbol, dir, why] of rule.effects) raw.push({ symbol, dir, why });
+    if (rule.mentioned) for (const symbol of mentioned) raw.push({ symbol, dir: rule.mentioned, why: rule.mentionedWhy });
+  }
+  // If nothing matched but an asset is named, fall back to headline tone.
+  if (!raw.length && mentioned.length) {
+    const t = toneScore(title).net;
+    if (t !== 0) for (const symbol of mentioned) raw.push({ symbol, dir: Math.sign(t), why: 'overall ' + (t > 0 ? 'positive' : 'negative') + ' coverage' });
+  }
+  // Merge by symbol.
+  const map = new Map();
+  for (const im of raw) {
+    if (!map.has(im.symbol)) map.set(im.symbol, { symbol: im.symbol, score: 0, whys: [] });
+    const e = map.get(im.symbol); e.score += im.dir; if (im.why) e.whys.push(im.why);
+  }
+  const impacts = [...map.values()].map(e => ({ symbol: e.symbol, dir: Math.sign(e.score), why: [...new Set(e.whys)].join('; ') }));
+  return { mentioned, topics: [...new Set(topics)], impacts, broad: Math.sign(broad), political, note };
 }
 
 function scamScore(text) {
@@ -655,6 +737,62 @@ const api = {
       .slice(0, 12);
 
     return { asset, windowDays, realChangePct, pundits };
+  },
+
+  // The game-view data: trees (assets, with a growth sparkline) + families +
+  // news clouds annotated with impact analysis (which trees they rain on).
+  async forest() {
+    const cached = cacheGet('forest:v1');
+    if (cached) return cached;
+
+    const syms = Object.keys(ASSETS);
+    const trees = await Promise.all(syms.map(async sym => {
+      const asset = resolveAsset(sym);
+      let price = null, change = null, spark = [];
+      try { const q = await getQuote(asset); price = q.price; change = q.change24h; } catch (e) { /* tree still shows */ }
+      try {
+        const h = await getHistory(asset, 90);
+        const step = Math.max(1, Math.floor(h.length / 40));
+        spark = h.filter((_, i) => i % step === 0).map(p => ({ t: p.t, price: p.price }));
+      } catch (e) { /* no sparkline is ok */ }
+      return { symbol: sym, name: asset.name, emoji: asset.emoji, char: asset.char, type: asset.type, family: asset.family, price, change, spark };
+    }));
+
+    // Broad, multi-angle news to fill the sky with clouds.
+    const queries = ['stock market OR nasdaq OR dow jones OR federal reserve', 'bitcoin OR crypto OR ethereum', 'trump economy OR tariffs OR election markets'];
+    const items = [];
+    for (const q of queries) {
+      try {
+        const u = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`;
+        items.push(...parseFeed(await fetchText(u, 5 * 60000)).slice(0, 18));
+      } catch (e) { /* one query failing is fine */ }
+    }
+
+    const seen = new Set();
+    const clouds = [];
+    for (const it of items) {
+      const key = (it.title || '').slice(0, 60).toLowerCase();
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      const a = analyzeHeadline(it.title);
+      if (!a.impacts.length && !a.political && !a.topics.length) continue; // skip clouds with no mapping
+      clouds.push({
+        title: it.title, link: it.link, source: it.source || sourceFromTitle(it.title) || 'news',
+        topics: a.topics, impacts: a.impacts, broad: a.broad, political: a.political, note: a.note, tone: a.tone,
+      });
+    }
+
+    // Landmarks: topics that dominate the sky become forest landmarks.
+    const topicCount = {};
+    for (const c of clouds) for (const t of c.topics) topicCount[t] = (topicCount[t] || 0) + 1;
+    const landmarks = [];
+    if ((topicCount['Politics 🏛️'] || 0) >= 2) landmarks.push({ id: 'trump-tower', emoji: '🏛️', label: 'Politics Tower', count: topicCount['Politics 🏛️'] });
+    if ((topicCount['AI boom 🤖'] || 0) >= 2) landmarks.push({ id: 'ai-lab', emoji: '🤖', label: 'AI Lab', count: topicCount['AI boom 🤖'] });
+    if ((topicCount['Geopolitics 💥'] || 0) >= 2) landmarks.push({ id: 'storm', emoji: '⛈️', label: 'Geopolitics Storm', count: topicCount['Geopolitics 💥'] });
+
+    const result = { families: FAMILIES, trees, clouds: clouds.slice(0, 40), landmarks, topicCount };
+    cacheSet('forest:v1', result, 120000); // reuse for 2 min — this endpoint is heavy
+    return result;
   },
 };
 

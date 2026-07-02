@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🌍 The Forest — HINDSIGHT game view</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>" />
+</head>
+<body class="forest-body">
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">🌍</span>
+    <span class="brand-name">THE <span class="brand-accent">FOREST</span></span>
+  </div>
+  <nav class="nav">
+    <a href="/">← BACK TO DASHBOARD</a>
+  </nav>
+  <div class="disclaimer-pill">FOR FUN · NOT ADVICE</div>
+</header>
+
+<p class="forest-intro">
+  Every <b>tree is an asset</b>, grouped into <b>families</b> (industries & coins). <b>News clouds</b> drift overhead —
+  <b>click a cloud</b> to see where its rain falls: 💧 <b>waters</b> (grows) or ☠️ <b>poisons</b> (wilts) which trees, and why.
+  Drag the <b>time machine</b> to watch the forest grow through the last 90 days.
+</p>
+
+<div class="forest-stage" id="stage">
+  <div class="sky" id="sky"></div>
+  <div class="sun">☀️</div>
+  <div class="ground" id="ground">
+    <div class="loading" style="margin:40px auto">Planting the forest…</div>
+  </div>
+</div>
+
+<div class="forest-hud">
+  <div class="legend">
+    <span>💧 waters = grows</span><span>☠️ poisons = wilts</span><span>👆 click a cloud</span><span>🌳 click a tree = its family</span>
+  </div>
+  <div class="timemachine">
+    <span class="tm-label">⏳ TIME MACHINE</span>
+    <input type="range" id="timeSlider" min="0" max="100" value="100" />
+    <span class="tm-date" id="timeDate">NOW</span>
+  </div>
+</div>
+
+<!-- cloud analysis panel -->
+<aside class="cloud-panel" id="cloudPanel">
+  <button class="cp-close" id="cpClose" aria-label="close">✕</button>
+  <div id="cpBody"></div>
+</aside>
+<div class="cloud-scrim" id="cloudScrim"></div>
+
+<script src="forest.js"></script>
+</body>
+</html>
