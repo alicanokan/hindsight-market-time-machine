@@ -4,6 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🌍 The Forest — HINDSIGHT game view</title>
+  <meta name="description" content="A market game world: stocks & coins grow as trees, news clouds drift overhead — click a cloud to see where its rain falls." />
+  <meta name="theme-color" content="#0d0d12" />
+  <meta property="og:title" content="🌍 The Forest — watch markets grow as trees" />
+  <meta property="og:description" content="Click a news cloud to see which assets it waters or poisons. Time-travel the forest, plant pretend seeds, hear the forecast." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://betdoi.com/forest.html" />
+  <meta name="twitter:card" content="summary" />
+  <link rel="manifest" href="manifest.json" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
@@ -18,45 +26,78 @@
     <span class="brand-name">THE <span class="brand-accent">FOREST</span></span>
   </div>
   <nav class="nav">
-    <a href="/">← BACK TO DASHBOARD</a>
+    <a href="/" data-i18n="back">← BACK TO DASHBOARD</a>
   </nav>
-  <div class="disclaimer-pill">FOR FUN · NOT ADVICE</div>
+  <button id="langToggle" class="lang-toggle" title="English / Türkçe">🇹🇷 TR</button>
+  <div class="disclaimer-pill" data-i18n="pill">FOR FUN · NOT ADVICE</div>
 </header>
 
-<p class="forest-intro">
-  Every <b>tree is an asset</b>, grouped into <b>families</b>. <b>News clouds</b> drift overhead —
-  <b>click a cloud</b> to see where its rain falls: 💧 <b>waters</b> or ☠️ <b>poisons</b> which trees, and why.
-  <b>Click a tree</b> for its news-driven <b>forecast</b>. Drag the <b>time machine</b> left into the <b>real past</b> (90 days)
-  or right past <b>NOW</b> into the <b>🔮 forecast</b> — where today's clouds bend each tree's future.
-</p>
+<p class="forest-intro" id="intro"></p>
+<div class="stale-badge" id="staleBadge" hidden>💤 <span data-i18n="stale">live feeds napping — showing last good data</span></div>
+
+<!-- daily story recap -->
+<div class="story-banner" id="storyBanner" hidden>
+  <div class="story-head" id="storyHead"></div>
+  <div class="story-lines" id="storyLines"></div>
+</div>
+
+<!-- 🎲 suggested one-click plays -->
+<div class="bets-strip" id="betsStrip" hidden>
+  <div class="bets-head" id="betsHead"></div>
+  <div class="bets-cards" id="betsCards"></div>
+  <div class="bets-note" id="betsNote"></div>
+</div>
 
 <div class="forest-stage" id="stage">
   <div class="sky" id="sky"></div>
   <div class="sun">☀️</div>
   <div class="ground" id="ground">
-    <div class="loading" style="margin:40px auto">Planting the forest…</div>
+    <div class="loading" id="bootLoading" style="margin:40px auto">Planting the forest…</div>
   </div>
 </div>
 
 <div class="forest-hud">
-  <div class="legend">
-    <span>💧 waters</span><span>☠️ poisons</span><span>👆 click a cloud</span><span>🌳 click a tree = forecast</span>
+  <div class="legend" id="legend">
+    <span data-i18n="lg1">💧 waters</span><span data-i18n="lg2">☠️ poisons</span>
+    <button id="newsListBtn" class="hud-btn">📰 <span data-i18n="newsList">news list</span></button>
+    <button id="gardenBtn" class="hud-btn">🌱 <span data-i18n="garden">my garden</span> <b id="gardenScore">0</b></button>
     <button id="soundToggle" class="snd-toggle" title="sound on/off">🔊</button>
   </div>
   <div class="timemachine">
-    <span class="tm-label">⏳ PAST</span>
+    <span class="tm-label" data-i18n="past">⏳ PAST</span>
     <input type="range" id="timeSlider" min="0" max="140" value="100" />
-    <span class="tm-label">🔮 FUTURE</span>
+    <span class="tm-label" data-i18n="future">🔮 FUTURE</span>
     <span class="tm-date" id="timeDate">NOW</span>
   </div>
 </div>
 
-<!-- cloud analysis panel -->
-<aside class="cloud-panel" id="cloudPanel">
+<!-- cloud / tree analysis panel -->
+<aside class="cloud-panel" id="cloudPanel" role="dialog" aria-modal="true" aria-label="analysis">
   <button class="cp-close" id="cpClose" aria-label="close">✕</button>
   <div id="cpBody"></div>
 </aside>
 <div class="cloud-scrim" id="cloudScrim"></div>
+
+<!-- bottom sheets: news list + garden -->
+<div class="sheet" id="newsSheet" role="dialog" aria-modal="true" aria-label="news list">
+  <div class="sheet-head"><span>📰 <span data-i18n="allClouds">All clouds in the sky</span></span><button class="cp-close sheet-close" data-close="newsSheet">✕</button></div>
+  <div class="sheet-body" id="newsSheetBody"></div>
+</div>
+<div class="sheet" id="gardenSheet" role="dialog" aria-modal="true" aria-label="my garden">
+  <div class="sheet-head"><span>🌱 <span data-i18n="gardenTitle">My garden — pretend seeds</span></span><button class="cp-close sheet-close" data-close="gardenSheet">✕</button></div>
+  <div class="sheet-body" id="gardenSheetBody"></div>
+</div>
+
+<!-- onboarding tour -->
+<div class="tour" id="tour" hidden>
+  <div class="tour-card">
+    <div class="tour-step" id="tourStep"></div>
+    <div class="tour-actions">
+      <button class="cp-btn ghost" id="tourSkip"></button>
+      <button class="cp-btn" id="tourNext"></button>
+    </div>
+  </div>
+</div>
 
 <script src="forest.js"></script>
 </body>

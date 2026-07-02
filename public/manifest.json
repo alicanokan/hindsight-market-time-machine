@@ -1,0 +1,12 @@
+{
+  "name": "HINDSIGHT — the market time machine",
+  "short_name": "HINDSIGHT",
+  "description": "Bet in the past, see what really happened. Watch markets grow as a forest.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f1e8",
+  "theme_color": "#0d0d12",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

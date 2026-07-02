@@ -46,6 +46,11 @@ const ASSETS = {
   TRY:  { name: 'Turkish Lira',  type: 'fx', id: 'TRY=X',   query: 'turkish lira turkey economy', emoji: '🇹🇷', char: '🇹🇷', family: 'fx', invert: true, color: '#e30a17' },
   EUR:  { name: 'Euro',          type: 'fx', id: 'EURUSD=X',query: 'euro dollar ECB', emoji: '🇪🇺', char: '🇪🇺', family: 'fx', color: '#0052b4' },
   RUB:  { name: 'Russian Ruble', type: 'fx', id: 'RUB=X',   query: 'russian ruble sanctions', emoji: '🇷🇺', char: '🇷🇺', family: 'fx', invert: true, color: '#0033a0' },
+  // Construction Yard
+  CAT:  { name: 'Caterpillar', type: 'stock', id: 'CAT',    query: 'caterpillar construction stock', emoji: '🏗️', char: '🏗️', family: 'industry', color: '#ffcd11' },
+  // Green Grove
+  ICLN: { name: 'Clean Energy', type: 'stock', id: 'ICLN',  query: 'clean energy renewable stocks', emoji: '♻️', char: '♻️', family: 'green', color: '#2ecc71' },
+  ENPH: { name: 'Enphase Solar', type: 'stock', id: 'ENPH', query: 'enphase solar stock', emoji: '🔆', char: '🔆', family: 'green', color: '#f39c12' },
   // Meme Thicket
   GME:  { name: 'GameStop', type: 'stock',  id: 'GME',      query: 'gamestop stock', emoji: '🎯', char: '🎯', family: 'meme', color: '#e31837' },
 };
@@ -58,6 +63,8 @@ const FAMILIES = {
   commodities: { label: 'Commodity Quarry', emoji: '⛏️', blurb: 'Gold & oil — dug from the ground' },
   bonds:       { label: 'Bond Bedrock',     emoji: '🪨', blurb: 'Government bonds — the slow bedrock' },
   fx:          { label: 'Currency River',   emoji: '💱', blurb: 'Currencies flowing against the dollar' },
+  industry:    { label: 'Construction Yard', emoji: '🏗️', blurb: 'Builders & heavy machines' },
+  green:       { label: 'Green Grove',      emoji: '♻️', blurb: 'Solar & clean energy' },
   meme:        { label: 'Meme Thicket',     emoji: '🍄', blurb: 'Retail-driven wild plants' },
 };
 
@@ -399,8 +406,10 @@ const IMPACT_RULES = [
   { re: /\bstrong dollar|dollar (surge|soar|strengthen|rally)|dxy (rise|surge)|greenback\b/i, topic: 'Strong dollar 💵', broad: -1,
     effects: [['TRY', -1, 'a strong dollar weakens the lira'], ['RUB', -1, 'a strong dollar weakens the ruble'], ['EUR', -1, 'euro slips vs the dollar'], ['GOLD', -1, 'gold priced in dollars gets pricier abroad']] },
   { re: /\bturkey|turkish|lira|erdogan\b/i, topic: 'Turkey 🇹🇷', mentioned: 0, note: 'Turkey-specific: watch the central bank & inflation — foreign inflows can prop the lira, capital flight sinks it' },
-  { re: /\brally|surge|soar|record high|all-time high|rockets?\b/i, topic: 'Momentum 📈', mentioned: 1, mentionedWhy: 'strong upward momentum' },
-  { re: /\bcrash|plunge|selloff|sell-off|tumble|collapse|bloodbath\b/i, topic: 'Selloff 📉', mentioned: -1, mentionedWhy: 'sharp price drop / fear' },
+  { re: /\binfrastructure (bill|spending|plan|package)|construction (boom|spending|surge)|housing starts\b/i, topic: 'Construction 🏗️', effects: [['CAT', 1, 'more building = more heavy machines sold']] },
+  { re: /\bsolar|renewabl|clean energy|green energy|climate (bill|deal|policy|summit)\b/i, topic: 'Green energy ☀️', effects: [['ICLN', 1, 'policy & demand tailwind for clean energy'], ['ENPH', 1, 'solar demand rising']] },
+  { re: /\brall(y|ies)|surge|soar|record high|all-time high|rockets?|rebound|recover|bounc/i, topic: 'Momentum 📈', mentioned: 1, mentionedWhy: 'strong upward momentum' },
+  { re: /\bcrash|plunge|selloff|sell-off|tumble|collapse|bloodbath|slide[sd]?|slip(s|ped)?|sink(s|ing)?|slump|dive[sd]?\b/i, topic: 'Selloff 📉', mentioned: -1, mentionedWhy: 'sharp price drop / fear' },
 ];
 
 // Extra words that should map a headline to an asset (beyond its name/symbol).
@@ -413,40 +422,64 @@ const ASSET_ALIASES = {
   RUB: ['ruble', 'rouble', 'russia', 'kremlin', 'moscow'],
   GOOGL: ['google', 'alphabet'],
   MSFT: ['microsoft'],
+  CAT: ['caterpillar'],
+  ICLN: ['clean energy', 'renewable'],
+  ENPH: ['enphase', 'solar'],
 };
 
-// Which of our named assets does a headline explicitly mention?
+// Which of our named assets does a headline mention, and WHERE?
 // Names/aliases match case-insensitively; ticker symbols match CASE-SENSITIVELY
 // on the raw text, otherwise common words hijack tickers ("try" -> TRY lira,
-// "rub" -> RUB ruble, "sol" -> SOL).
-function detectAssets(text) {
+// "rub" -> RUB ruble, "sol" -> SOL). Positions feed the attribution check.
+function findMentions(text) {
   const raw = text || '';
   const t = raw.toLowerCase();
-  const found = [];
+  const out = [];
   for (const [sym, a] of Object.entries(ASSETS)) {
-    const nm = a.name.toLowerCase();
-    const aliases = ASSET_ALIASES[sym] || [];
-    if (t.includes(nm) || new RegExp(`\\b${sym}\\b`).test(raw) || aliases.some(w => t.includes(w))) found.push(sym);
+    let idx = t.indexOf(a.name.toLowerCase());
+    if (idx < 0) { const m = raw.match(new RegExp(`\\b${sym}\\b`)); if (m) idx = m.index; }
+    if (idx < 0) for (const w of (ASSET_ALIASES[sym] || [])) { const i = t.indexOf(w); if (i >= 0) { idx = i; break; } }
+    if (idx >= 0) out.push({ sym, idx });
   }
-  return found;
+  return out;
+}
+function detectAssets(text) { return findMentions(text).map(m => m.sym); }
+
+// "won't crash" / "denies fraud" should not read as crash/fraud.
+function isNegated(text, idx) {
+  return /\b(not|no|never|won'?t|isn'?t|doesn'?t|denies|deny|denied|unlikely|avoid\w*|without)\b[^.]{0,12}$/i
+    .test(text.slice(Math.max(0, idx - 26), idx));
 }
 
 // Read one headline → { topics, impacts:[{symbol,dir,why}], broad, political }
 function analyzeHeadline(title) {
-  const mentioned = detectAssets(title);
-  const topics = [], raw = [];
-  let broad = 0, political = false, note = null;
+  const mentionsPos = findMentions(title);
+  const mentioned = mentionsPos.map(m => m.sym);
+  const topics = [], raw = [], notes = [];
+  let broad = 0, political = false;
   for (const rule of IMPACT_RULES) {
-    if (!rule.re.test(title)) continue;
+    const m = title.match(rule.re);
+    if (!m) continue;
     topics.push(rule.topic);
     if (rule.broad) broad += rule.broad;
     if (rule.political) political = true;
-    if (rule.note) note = rule.note;
+    if (rule.note) notes.push(rule.note);
     if (rule.effects) for (const [symbol, dir, why] of rule.effects) raw.push({ symbol, dir, why });
-    if (rule.mentioned) for (const symbol of mentioned) raw.push({ symbol, dir: rule.mentioned, why: rule.mentionedWhy });
+    if (rule.mentioned && !isNegated(title, m.index)) {
+      // Attribution: momentum/selloff verbs apply to the asset they follow
+      // ("lira slides…") — a mention just before the keyword, not any mention
+      // anywhere in the headline ("…as inflation surges" must not hit the lira).
+      for (const mp of mentionsPos) {
+        const gap = m.index - mp.idx;
+        if (gap > 0 && gap <= 24) raw.push({ symbol: mp.sym, dir: rule.mentioned, why: rule.mentionedWhy });
+      }
+    }
   }
-  // If nothing matched but an asset is named, fall back to headline tone.
-  if (!raw.length && mentioned.length) {
+  // If nothing matched but an asset is named, fall back to headline tone —
+  // unless the headline contains a negation ("won't crash"), which flips
+  // meaning in ways a bag-of-words read can't see. Then better to stay quiet.
+  const hasNegation = /(?:won'?t|\bnot\b|\bnever\b|\bno\b|denies|denied?|unlikely)/i.test(title);
+  if (!raw.length && mentioned.length && !hasNegation) {
     const t = toneScore(title).net;
     if (t !== 0) for (const symbol of mentioned) raw.push({ symbol, dir: Math.sign(t), why: 'overall ' + (t > 0 ? 'positive' : 'negative') + ' coverage' });
   }
@@ -459,7 +492,8 @@ function analyzeHeadline(title) {
   const impacts = [...map.values()]
     .map(e => ({ symbol: e.symbol, dir: Math.sign(e.score), why: [...new Set(e.whys)].join('; ') }))
     .filter(e => e.dir !== 0); // opposing rules cancel out -> no net effect, drop the noise
-  return { mentioned, topics: [...new Set(topics)], impacts, broad: Math.sign(broad), political, note };
+  return { mentioned, topics: [...new Set(topics)], impacts, broad: Math.sign(broad), political,
+           note: notes.length ? [...new Set(notes)].join(' · ') : null };
 }
 
 function scamScore(text) {
@@ -714,6 +748,7 @@ const api = {
       { code: 'GB', flag: '🇬🇧', gl: 'GB', hl: 'en-GB', ceid: 'GB:en' },
       { code: 'IN', flag: '🇮🇳', gl: 'IN', hl: 'en-IN', ceid: 'IN:en' },
       { code: 'JP', flag: '🇯🇵', gl: 'JP', hl: 'en-JP', ceid: 'JP:en' },
+      { code: 'TR', flag: '🇹🇷', gl: 'TR', hl: 'tr', ceid: 'TR:tr' },
     ];
     const clouds = [];
     for (const r of regions) {
@@ -826,6 +861,7 @@ const api = {
       'trump economy OR tariffs OR election markets',
       'gold price OR oil price OR OPEC OR commodities',
       'turkish lira OR euro dollar OR ruble OR emerging markets OR treasury yields',
+      'clean energy OR solar stocks OR infrastructure construction spending',
     ];
     const items = [];
     for (const q of queries) {
@@ -907,13 +943,167 @@ const api = {
     if ((topicCount['Geopolitics 💥'] || 0) >= 2) landmarks.push({ id: 'storm', emoji: '⛈️', label: 'Geopolitics Storm', count: topicCount['Geopolitics 💥'] });
     if ((topicCount['Oil supply ⛽'] || 0) >= 2) landmarks.push({ id: 'rig', emoji: '🛢️', label: 'Oil Derrick', count: topicCount['Oil supply ⛽'] });
 
-    const result = { families: FAMILIES, trees, clouds: clouds.slice(0, 44), landmarks, topicCount };
+    // Daily story recap + storm level (darkens the sky when geopolitics piles up).
+    const ranked = trees.filter(t => t.forecast).sort((a, b) => b.forecast.outlook - a.forecast.outlook);
+    const sunny = ranked[0], stormy = ranked[ranked.length - 1];
+    const topTopics = Object.entries(topicCount).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    const stormLevel = (broadMood < -0.15 ? 1 : 0) + ((topicCount['Geopolitics 💥'] || 0) >= 3 ? 1 : 0);
+    const story = {
+      headline: topTopics.length ? `Today's weather is made of: ${topTopics.map(([t, c]) => `${t} ×${c}`).join(' · ')}` : 'A quiet day in the forest.',
+      lines: [
+        sunny ? `${sunny.char} ${sunny.name} gets the best weather ${sunny.forecast.weather} (leaning ${sunny.forecast.base > 0 ? '+' : ''}${sunny.forecast.base}%)` : null,
+        stormy && stormy !== sunny ? `${stormy.char} ${stormy.name} braces for the worst ${stormy.forecast.weather} (${stormy.forecast.base}%)` : null,
+        `Forest mood: ${broadMood > 0.05 ? 'risk-on, sun breaking through 🌞' : broadMood < -0.05 ? 'risk-off, clouds gathering 🌧️' : 'mixed skies ⛅'}`,
+      ].filter(Boolean),
+      stormLevel,
+    };
+
+    const result = { families: FAMILIES, trees, clouds: clouds.slice(0, 44), landmarks, topicCount, story,
+                     llm: !!process.env.ANTHROPIC_API_KEY };
     cacheSet('forest:v1', result, 120000);
     return result;
+  },
+
+  // "What happened after previous clouds like this?" — empirical topic
+  // reactions used by the cloud panel as a history reality-check.
+  async calibration() {
+    return { windowDays: 60, calibration: await topicCalibration() };
+  },
+
+  // On-demand AI deep-read of one headline (only called when a cloud is
+  // clicked, so cost stays tiny). Requires ANTHROPIC_API_KEY on the server.
+  async insight(q) {
+    const title = (q.title || '').slice(0, 300).trim();
+    if (!title) throw httpErr(400, 'Missing title');
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return { enabled: false, note: 'AI deep reads are off — set ANTHROPIC_API_KEY on the server to enable them.' };
+    }
+    try {
+      const analysis = await llmInsight(title, q.source);
+      if (!analysis) return { enabled: true, error: 'The AI declined this one — rule-based analysis still applies.' };
+      return { enabled: true, analysis };
+    } catch (e) {
+      return { enabled: true, error: 'AI read unavailable right now — rule-based analysis still applies.' };
+    }
   },
 };
 
 function httpErr(status, msg) { const e = new Error(msg); e.status = status; return e; }
+
+/* -------------------------------------------------------------------------- */
+/* Optional LLM deep-read of a headline (enabled by ANTHROPIC_API_KEY).        */
+/* Raw HTTP on purpose: this project deploys with zero npm dependencies.      */
+/* -------------------------------------------------------------------------- */
+async function llmInsight(title, source) {
+  const key = process.env.ANTHROPIC_API_KEY;
+  if (!key) return null;
+  const ck = 'insight:' + title.slice(0, 140).toLowerCase();
+  const hit = cacheGet(ck);
+  if (hit) return hit;
+
+  const symbols = Object.keys(ASSETS);
+  const schema = {
+    type: 'object', additionalProperties: false,
+    required: ['summary', 'topics', 'impacts', 'watch'],
+    properties: {
+      summary: { type: 'string', description: 'Two plain-language sentences for a total beginner: what this news means and why it matters.' },
+      topics: { type: 'array', items: { type: 'string' }, description: 'Short topic tags, max 3.' },
+      impacts: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['symbol', 'dir', 'why'], properties: {
+        symbol: { type: 'string', enum: symbols },
+        dir: { type: 'string', enum: ['up', 'down'] },
+        why: { type: 'string', description: 'One beginner-friendly sentence explaining the mechanism.' },
+      } } },
+      watch: { type: 'string', description: 'One concrete thing a beginner should watch next.' },
+    },
+  };
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    signal: AbortSignal.timeout(30000),
+    body: JSON.stringify({
+      model: 'claude-opus-4-8',
+      max_tokens: 1200,
+      system: 'You analyze one financial news headline for a playful "market forest" game where assets are trees that news clouds water (push up) or poison (push down). Audience: total beginners. Be honest and specific; never invent facts beyond the headline; if the headline plausibly moves none of the tracked assets, return an empty impacts array. This is entertainment/education, not financial advice.',
+      messages: [{ role: 'user', content: `Headline: "${title}"${source ? ` (source: ${source})` : ''}.\nTracked assets: ${symbols.map(s => `${s}=${ASSETS[s].name}`).join(', ')}.\nWhich tracked assets does this plausibly push up or down, and why?` }],
+      output_config: { format: { type: 'json_schema', schema } },
+    }),
+  });
+  if (!res.ok) throw new Error(`llm upstream ${res.status}`);
+  const msg = await res.json();
+  if (msg.stop_reason === 'refusal') return null; // safety decline — fall back to rules
+  const text = (msg.content || []).find(b => b.type === 'text')?.text || '';
+  const out = JSON.parse(text);
+  cacheSet(ck, out, 60 * 60000); // an hour — headlines don't change
+  return out;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Cloud calibration — "how did trees react when similar clouds passed?"      */
+/* Event study: for each topic, pull dated headlines from the last 60 days,   */
+/* find the asset's average move over the 3 days after each event, and use    */
+/* that as an empirical reality-check on the rule engine's prediction.        */
+/* -------------------------------------------------------------------------- */
+const CAL_QUERIES = {
+  'Tariffs 🏭': 'tariffs trade war',
+  'Rate-cut hopes 🕊️': 'fed rate cut',
+  'Rate hikes 🦅': 'fed rate hike hawkish',
+  'Inflation 🔥': 'CPI inflation report',
+  'Geopolitics 💥': 'war sanctions geopolitical markets',
+  'AI boom 🤖': 'AI chips demand',
+  'Oil supply ⛽': 'OPEC oil supply',
+  'Crackdown 🚫': 'crypto crackdown ban',
+  'ETF flows 💰': 'bitcoin etf inflows',
+  'Strong dollar 💵': 'dollar strengthens DXY',
+};
+
+async function topicCalibration() {
+  const cached = cacheGet('calib:v1');
+  if (cached) return cached;
+  const out = {};
+  for (const [topic, q] of Object.entries(CAL_QUERIES)) {
+    try {
+      const rule = IMPACT_RULES.find(r => r.topic === topic);
+      const syms = rule?.effects ? [...new Set(rule.effects.map(e => e[0]))].slice(0, 4) : [];
+      if (!syms.length) continue;
+      const xml = await fetchText(`https://news.google.com/rss/search?q=${encodeURIComponent(q + ' when:60d')}&hl=en-US&gl=US&ceid=US:en`, 30 * 60000);
+      const items = parseFeed(xml);
+      // distinct event DAYS, old enough to have a 3-day forward window
+      const days = [...new Set(items.map(i => { const d = new Date(i.date); return isNaN(d) ? null : d.toISOString().slice(0, 10); }).filter(Boolean))]
+        .filter(d => (Date.now() - new Date(d + 'T00:00:00Z').getTime()) > 4 * 86400000)
+        .sort().slice(-10);
+      if (days.length < 2) continue;
+      const reactions = {};
+      for (const sym of syms) {
+        try {
+          const h = await getHistory(resolveAsset(sym), 90);
+          const moves = [];
+          for (const d of days) {
+            const target = new Date(d + 'T00:00:00Z').getTime() + 43200000;
+            let idx = -1;
+            for (let i = 0; i < h.length; i++) if (h[i].t <= target) idx = i;
+            if (idx >= 0 && idx + 3 < h.length) moves.push(((h[idx + 3].price - h[idx].price) / h[idx].price) * 100);
+          }
+          if (moves.length >= 2) reactions[sym] = +(moves.reduce((a, b) => a + b, 0) / moves.length).toFixed(1);
+        } catch (e) { /* one asset failing is fine */ }
+      }
+      if (Object.keys(reactions).length) out[topic] = { events: days.length, horizonDays: 3, reactions };
+    } catch (e) { /* one topic failing is fine */ }
+  }
+  cacheSet('calib:v1', out, 30 * 60000);
+  return out;
+}
+
+/* Per-IP rate limit for /api/*: protects upstream quotas + the LLM budget.   */
+const rateBuckets = new Map();
+function rateLimited(ip) {
+  const now = Date.now();
+  if (rateBuckets.size > 5000) rateBuckets.clear(); // memory guard
+  let b = rateBuckets.get(ip);
+  if (!b || now > b.reset) { b = { n: 0, reset: now + 60000 }; rateBuckets.set(ip, b); }
+  b.n++;
+  return b.n > 120; // 120 req/min/ip is far above normal page usage
+}
 
 /* -------------------------------------------------------------------------- */
 /* HTTP server: static files + /api/*                                          */
@@ -948,6 +1138,11 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (url.pathname.startsWith('/api/')) {
+      const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || '?';
+      if (rateLimited(ip)) {
+        res.writeHead(429, { 'Content-Type': 'application/json', 'Retry-After': '30' });
+        return res.end(JSON.stringify({ error: 'Easy there — too many requests. Try again in a moment.' }));
+      }
       const name = url.pathname.slice(5);
       const q = Object.fromEntries(url.searchParams);
       res.setHeader('Access-Control-Allow-Origin', '*');
@@ -981,17 +1176,27 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-const HOST = process.env.HOST || '0.0.0.0';
-server.listen(PORT, HOST, () => {
-  console.log(`\n  ⏳  HINDSIGHT — the market time machine`);
-  console.log(`  ▶  listening on http://${HOST}:${PORT}  (open http://localhost:${PORT})\n`);
-  console.log(`  Live data: CoinGecko · Yahoo Finance · Reddit · Google News`);
-  console.log(`  For fun & learning only. Not financial advice.\n`);
-});
+// Only start listening when run directly — lets the test suite require() this
+// file and exercise the pure functions without opening a port.
+if (require.main === module) {
+  const HOST = process.env.HOST || '0.0.0.0';
+  server.listen(PORT, HOST, () => {
+    console.log(`\n  ⏳  HINDSIGHT — the market time machine`);
+    console.log(`  ▶  listening on http://${HOST}:${PORT}  (open http://localhost:${PORT})\n`);
+    console.log(`  Live data: CoinGecko · Yahoo Finance · Reddit · Google News`);
+    console.log(`  AI deep reads: ${process.env.ANTHROPIC_API_KEY ? 'ON' : 'off (set ANTHROPIC_API_KEY)'}`);
+    console.log(`  For fun & learning only. Not financial advice.\n`);
+  });
 
-// Keep the server alive through transient errors; shut down cleanly on host signals.
-process.on('unhandledRejection', err => console.error('unhandledRejection:', err?.message || err));
-process.on('uncaughtException', err => console.error('uncaughtException:', err?.message || err));
-for (const sig of ['SIGTERM', 'SIGINT']) {
-  process.on(sig, () => { console.log(`\n${sig} received — shutting down.`); server.close(() => process.exit(0)); setTimeout(() => process.exit(0), 3000); });
+  // Keep the server alive through transient errors; shut down cleanly on host signals.
+  process.on('unhandledRejection', err => console.error('unhandledRejection:', err?.message || err));
+  process.on('uncaughtException', err => console.error('uncaughtException:', err?.message || err));
+  for (const sig of ['SIGTERM', 'SIGINT']) {
+    process.on(sig, () => { console.log(`\n${sig} received — shutting down.`); server.close(() => process.exit(0)); setTimeout(() => process.exit(0), 3000); });
+  }
 }
+
+module.exports = {
+  server,
+  __test: { analyzeHeadline, detectAssets, findMentions, isNegated, toneScore, scamScore, projectCone, ASSETS, FAMILIES },
+};

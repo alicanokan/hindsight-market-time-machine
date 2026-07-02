@@ -420,3 +420,113 @@ input[type=date],input[type=number]{font-family:'Space Mono',monospace;font-size
   .bet-lines{grid-template-columns:1fr}
   .hero{padding-top:44px}
 }
+
+/* ============================================================
+   FOREST v2 — story, sheets, seeds, tour, cone, i18n, storm
+   ============================================================ */
+.lang-toggle{font-family:'Space Mono',monospace;font-weight:700;font-size:12px;background:var(--paper);
+  border:3px solid var(--yellow);border-radius:100px;padding:5px 12px;cursor:pointer;margin-left:8px}
+.stale-badge{max-width:1000px;margin:6px auto 0;padding:6px 14px;font-family:'Space Mono',monospace;
+  font-size:12px;font-weight:700;background:#fff3c4;border:3px solid var(--ink);border-radius:100px;
+  width:fit-content}
+
+/* story banner */
+.story-banner{max-width:1200px;margin:10px auto 0;padding:12px 18px;background:var(--ink);color:var(--paper);
+  border:var(--line);border-radius:16px;box-shadow:var(--shadow-sm)}
+.story-head{font-family:'Archivo Black',sans-serif;font-size:15px;margin-bottom:6px;color:var(--yellow)}
+.story-lines{display:flex;flex-wrap:wrap;gap:6px 18px}
+.story-line{font-size:13px;opacity:.9}
+
+/* storm levels darken the sky */
+.forest-stage.storm-1{background:linear-gradient(#7fa7c9 0%,#a9c6dd 45%,#d5e6cc 62%,#b7d49a 100%)}
+.forest-stage.storm-2{background:linear-gradient(#4a5a75 0%,#6e7f99 45%,#9fb096 62%,#8aa578 100%)}
+.forest-stage.storm-2 .sun{filter:grayscale(.8) opacity(.5)}
+
+/* hud buttons */
+.hud-btn{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;background:#fff;
+  border:3px solid var(--ink);border-radius:100px;padding:5px 11px;cursor:pointer;
+  box-shadow:3px 3px 0 var(--ink);transition:transform .1s}
+.hud-btn:hover{transform:translate(-1px,-1px)}
+.hud-btn b{color:#1c7a45}
+
+/* bottom sheets */
+.sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,105%);width:min(720px,96vw);
+  max-height:70vh;background:var(--paper);border:var(--line);border-bottom:none;
+  border-radius:20px 20px 0 0;z-index:75;transition:transform .28s cubic-bezier(.5,0,.2,1);
+  display:flex;flex-direction:column;box-shadow:0 -8px 0 rgba(13,13,18,.1)}
+.sheet.open{transform:translate(-50%,0)}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;
+  font-family:'Archivo Black',sans-serif;font-size:16px;border-bottom:3px solid var(--ink)}
+.sheet-close{position:static}
+.sheet-body{overflow-y:auto;padding:8px}
+.news-row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;
+  border:3px solid var(--ink);border-radius:12px;padding:10px 12px;margin-bottom:6px;cursor:pointer;
+  font-family:'Space Grotesk',sans-serif;transition:transform .1s}
+.news-row:hover{transform:translateX(3px);background:var(--yellow)}
+.nr-dot{font-size:14px}
+.nr-main{flex:1;font-size:13px;line-height:1.3}
+.nr-hits{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;white-space:nowrap;opacity:.75}
+
+/* garden */
+.seed-row{display:flex;align-items:center;gap:10px;background:#fff;border:3px solid var(--ink);
+  border-radius:12px;padding:10px 12px;margin-bottom:6px}
+.sr-ico{font-size:22px}
+.sr-main{flex:1;font-size:13px;line-height:1.3}
+.sr-pnl{font-family:'Space Mono',monospace;font-weight:700;font-size:15px;padding:3px 8px;border-radius:8px;
+  border:2px solid var(--ink)}
+.sr-pnl.up{background:var(--green)}.sr-pnl.down{background:var(--red);color:#fff}
+.sr-harvest{padding:8px 10px;font-size:12px}
+.seed-actions .seed-btn{flex:1}
+.tree-seeds{display:block;font-size:11px;line-height:1;min-height:12px}
+
+/* possibility cone bar (future zone) */
+.cone-bar{position:absolute;left:50%;transform:translateX(-50%);width:14px;border-radius:8px;
+  background:linear-gradient(#3ddc8488,#ff443888);border:2px dashed rgba(13,13,18,.4);
+  opacity:0;transition:opacity .3s;pointer-events:none;z-index:0}
+.tree-top{position:relative}
+
+/* AI deep read box */
+.ai-box{background:#efe9ff;border:3px solid var(--ink);border-radius:12px;padding:12px;margin:12px 0}
+.ai-box>b{font-family:'Archivo Black',sans-serif;font-size:13px;text-transform:uppercase}
+.ai-loading{font-family:'Space Mono',monospace;font-size:12px;opacity:.65;margin-top:6px;animation:pulse 1.2s infinite}
+.ai-summary{font-size:14px;margin:8px 0}
+
+/* onboarding tour */
+.tour{position:fixed;inset:0;background:rgba(13,13,18,.55);z-index:90;display:flex;align-items:center;justify-content:center}
+.tour-card{background:var(--paper);border:var(--line);border-radius:18px;box-shadow:var(--shadow);
+  max-width:440px;width:92vw;padding:22px}
+.tour-step{font-size:16px;line-height:1.5;margin-bottom:18px}
+.tour-count{font-family:'Space Mono',monospace;font-weight:700;font-size:12px;background:var(--yellow);
+  border:2px solid var(--ink);border-radius:100px;padding:2px 10px;width:fit-content;margin-bottom:10px}
+.tour-actions{display:flex;gap:10px;justify-content:flex-end}
+
+/* history check (cloud reaction memory) */
+.hist-box{background:#e2f4ff;border:3px solid var(--ink);border-radius:12px;padding:12px;margin:12px 0}
+.hist-box>b{font-family:'Archivo Black',sans-serif;font-size:13px;text-transform:uppercase}
+.hist-sub{font-family:'Space Mono',monospace;font-size:11px;opacity:.7;margin:4px 0 8px}
+.hist-chips{display:flex;flex-wrap:wrap;gap:6px}
+.hist-chip{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;padding:4px 9px;
+  border-radius:8px;border:2px solid var(--ink)}
+.hist-chip.up{background:#d8f7e4}.hist-chip.down{background:#ffe3df}
+.hist-mark{margin-left:2px}
+.hist-note{font-size:12px;opacity:.75;margin-top:8px;font-style:italic}
+
+/* 🎲 suggested plays strip */
+.bets-strip{max-width:1200px;margin:10px auto 0;padding:14px 18px;background:var(--yellow);
+  border:var(--line);border-radius:16px;box-shadow:var(--shadow-sm)}
+.bets-head{font-family:'Archivo Black',sans-serif;font-size:16px;margin-bottom:10px}
+.bets-cards{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px}
+.bets-cards::-webkit-scrollbar{height:8px}
+.bets-cards::-webkit-scrollbar-thumb{background:var(--ink);border-radius:8px}
+.play-card{flex:0 0 300px;background:#fff;border:3px solid var(--ink);border-radius:14px;
+  padding:12px;display:flex;flex-direction:column;gap:8px;box-shadow:3px 3px 0 var(--ink)}
+.play-card.play-up{background:#f0fff5}.play-card.play-down{background:#fff4f2}
+.play-kind{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;opacity:.7}
+.play-text{font-size:13.5px;line-height:1.4;flex:1}
+.play-text i{font-size:11.5px;opacity:.7}
+.play-btn{padding:10px;font-size:13px}
+.play-btn:disabled{opacity:.7;cursor:default;transform:none}
+.bets-note{font-family:'Space Mono',monospace;font-size:11px;opacity:.65;margin-top:8px}
+
+/* hidden must win over display:flex */
+.tour[hidden],.bets-strip[hidden],.story-banner[hidden],.stale-badge[hidden]{display:none}

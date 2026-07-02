@@ -4,9 +4,12 @@
   "description": "A for-Dummies market time machine: back-test bets on real crypto/stock history, peek at possibility timelines, scan forums, catch scams, and see world news clouds.",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test tests/impact.test.js"
   },
-  "engines": { "node": ">=18" },
+  "engines": {
+    "node": ">=18"
+  },
   "license": "MIT",
   "private": true
 }
