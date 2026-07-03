@@ -20,7 +20,7 @@ Calibrated, not psychic. Not financial advice.
 |---|---|
 | Training day | **1 of 10** |
 | Assets covered | 19 |
-| Guesses on record | **76** (all pending — nothing gradeable yet) |
+| Guesses on record | **224** and growing (76 at launch; batches fire ~every 6h — all pending, nothing gradeable yet) |
 | Graded so far | 0 |
 | First 1-day grades due | 2026-07-04 |
 | 10-day grades due | ~2026-07-12 (day 10 — the finish line) |
