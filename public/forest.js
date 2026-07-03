@@ -78,6 +78,28 @@ const STR = {
     arenaMonkeyZero: '🐒 The Monkey lost to every expert this year — rare! Re-run on another tree before you start trusting experts.',
     arenaNote: 'Walk-forward test on real history: each character is a mechanical rule that sees only the past at every step. Whoever tops this board learned THIS year\'s weather on THIS tree — re-run on another tree and the podium reshuffles. That instability is the lesson. A game, NOT advice.',
     arenaErr: '⚠ could not fetch history — the free data source may be napping, try again in a minute',
+    profBtn: 'profile',
+    profTitle: 'Speculator profile — your live game dashboard',
+    profCreateH: '👤 Create your speculator profile',
+    profCreateSub: 'Pick a face, pick a name — then test your speculations like a game. Every call is tracked against <b>REAL live prices</b>, your record builds your rank, and nothing here is real money.',
+    profNamePh: 'your speculator name…',
+    profStart: '🚀 Start speculating',
+    profRank: 'rank', profXpNote: 'XP: +10 per settled call, +25 per win, hot-streak bonus',
+    profOpen: '📡 Live speculations — ticking against real prices',
+    profNoOpen: 'No live speculations right now. Place one below — or plant seeds on any tree, bet clouds, take guesses: everything lands here.',
+    profHistoryH: '📜 Settled record',
+    profNoHistory: 'Nothing settled yet — your record starts when your first speculation expires.',
+    profStatsH: '📊 Your numbers',
+    profWins: 'wins', profLosses: 'losses', profHit: 'hit rate', profStreak: 'streak',
+    profBest: 'best call', profWorst: 'worst call', profCalls: 'settled',
+    profNewH: '🧪 Test a new speculation',
+    profGrow: '🌱 GROWS', profWilt: '🥀 WILTS', profPlace: '🎯 Place it — watch it live',
+    profPlaced: '🎯 Speculation placed — it\'s now ticking in your profile.',
+    profLive: 'LIVE', profNow: 'now', profIn: 'in',
+    profEdit: '✏️ edit', profSave: '💾 save',
+    profOpenTotal: 'open P&L',
+    profLevels: ['🌱 Seedling', '🌿 Sprout', '🌳 Gardener', '🧭 Forest Ranger', '🌦️ Weather Watcher', '🔮 Storm Prophet', '🐉 Market Dragon'],
+    profNote: 'Pretend money, REAL prices, live every 30 seconds. A game for learning — NOT financial advice.',
     hz1h: '1 hour', hz1d: '1 day', hz1w: '1 week', hz30d: '1 month',
     hourNote: '🎲 at 1-hour scale, luck rules — basically a coin-flip with vibes',
     settled: '⏰ bet settled:', left: 'left', manual: '♾ manual',
@@ -155,6 +177,28 @@ const STR = {
     arenaMonkeyZero: '🐒 Maymun bu yıl herkese yenildi — nadir bir yıl! Uzmanlara güvenmeye başlamadan önce başka bir ağaçta tekrar dene.',
     arenaNote: 'Gerçek tarih üzerinde ileriye-yürüyen test: her karakter, her adımda yalnızca geçmişi gören mekanik bir kural. Bu tabloyu kim kazandıysa BU ağaçta BU yılın havasını öğrendi — başka bir ağaçta tekrar oynat, podyum karışır. O istikrarsızlık dersin kendisi. Bir oyun, tavsiye DEĞİL.',
     arenaErr: '⚠ tarih verisi gelmedi — ücretsiz kaynak uyukluyor olabilir, bir dakika sonra tekrar dene',
+    profBtn: 'profil',
+    profTitle: 'Spekülatör profili — canlı oyun panon',
+    profCreateH: '👤 Spekülatör profilini oluştur',
+    profCreateSub: 'Bir yüz seç, bir isim koy — sonra spekülasyonlarını oyun gibi test et. Her çağrı <b>GERÇEK canlı fiyatlara</b> karşı izlenir, sicilin rütbeni yükseltir, buradaki hiçbir şey gerçek para değildir.',
+    profNamePh: 'spekülatör adın…',
+    profStart: '🚀 Spekülasyona başla',
+    profRank: 'rütbe', profXpNote: 'XP: kapanan çağrı +10, kazanan +25, seri bonusu',
+    profOpen: '📡 Canlı spekülasyonlar — gerçek fiyatlarla işliyor',
+    profNoOpen: 'Şu an canlı spekülasyon yok. Aşağıdan bir tane aç — ya da ağaçlara tohum ek, bulutlara oyna, tahmin et: hepsi buraya düşer.',
+    profHistoryH: '📜 Kapanan sicil',
+    profNoHistory: 'Henüz kapanan yok — sicilin ilk spekülasyonun vadesi dolunca başlar.',
+    profStatsH: '📊 Rakamların',
+    profWins: 'kazanç', profLosses: 'kayıp', profHit: 'isabet', profStreak: 'seri',
+    profBest: 'en iyi', profWorst: 'en kötü', profCalls: 'kapanan',
+    profNewH: '🧪 Yeni bir spekülasyon dene',
+    profGrow: '🌱 BÜYÜR', profWilt: '🥀 SOLAR', profPlace: '🎯 Aç — canlı izle',
+    profPlaced: '🎯 Spekülasyon açıldı — artık profilinde canlı işliyor.',
+    profLive: 'CANLI', profNow: 'şimdi', profIn: 'kaldı',
+    profEdit: '✏️ düzenle', profSave: '💾 kaydet',
+    profOpenTotal: 'açık K/Z',
+    profLevels: ['🌱 Fide', '🌿 Filiz', '🌳 Bahçıvan', '🧭 Orman Korucusu', '🌦️ Hava Gözcüsü', '🔮 Fırtına Kâhini', '🐉 Piyasa Ejderi'],
+    profNote: 'Hayali para, GERÇEK fiyatlar, 30 saniyede bir canlı. Öğrenmek için bir oyun — yatırım tavsiyesi DEĞİL.',
     hz1h: '1 saat', hz1d: '1 gün', hz1w: '1 hafta', hz30d: '1 ay',
     hourNote: '🎲 1 saatlik ölçekte şans konuşur — hisli bir yazı-tura',
     settled: '⏰ bahis kapandı:', left: 'kaldı', manual: '♾ elle',
@@ -174,7 +218,7 @@ function applyLang() {
   $('#langToggle').textContent = lang === 'en' ? '🇹🇷 TR' : '🇬🇧 EN';
   if ($('#timeDate').textContent === 'NOW' || $('#timeDate').textContent === 'ŞİMDİ') $('#timeDate').textContent = L().now;
 }
-$('#langToggle').onclick = () => { lang = lang === 'en' ? 'tr' : 'en'; localStorage.setItem('forestLang', lang); applyLang(); renderGardenBtn(); if (DATA) { renderSuggestions(); renderGuessGame(); } };
+$('#langToggle').onclick = () => { lang = lang === 'en' ? 'tr' : 'en'; localStorage.setItem('forestLang', lang); applyLang(); renderGardenBtn(); if (DATA) { renderSuggestions(); renderGuessGame(); renderProfStrip(); } };
 
 /* ---------------- state ---------------- */
 let DATA = null;
@@ -203,6 +247,7 @@ async function boot() {
     settleExpired();
     setInterval(settleExpired, 60000);     // the betting engine's clock
     setInterval(refreshClouds, 3 * 60000); // A4: quiet refresh
+    setInterval(profLiveTick, 30000);      // profile: live re-pricing of open calls
     // history calibration loads in the background (first compute can be slow)
     fetch('/api/calibration').then(r => r.json()).then(j => { CAL = j.calibration || null; renderSuggestions(); }).catch(() => {});
   } catch (e) {
@@ -217,6 +262,7 @@ function renderAll() {
   renderStory();
   renderSuggestions();
   renderGuessGame();
+  renderProfStrip();
   renderGardenBtn();
   renderSeedBadges();
   $('#staleBadge').hidden = !DATA._stale;
@@ -730,6 +776,7 @@ function settleExpired() {
       gardenScore += pnl;
       toast(`${L().settled} ${t ? t.char + ' ' + t.name : s.symbol} ${pnl >= 0 ? '+' : ''}${pnl.toFixed(1)}`);
     }
+    recordSettle(s, pnl); // profile record + XP + rank
     garden.splice(i, 1);
     changed = true;
   }
@@ -797,6 +844,7 @@ function renderGardenSheet() {
     const { value, pnl } = seedValue(s);
     if (s.game === 'guess') { wallet += value; saveWallet(); }
     else gardenScore += pnl;
+    recordSettle(s, pnl); // harvests count on the record too
     garden.splice(i, 1);
     saveGarden(); sfx('pop');
     toast(`🧺 ${pnl >= 0 ? '+' : ''}${pnl.toFixed(s.game === 'guess' ? 2 : 0)} harvested!`);
@@ -1261,6 +1309,232 @@ async function runArena() {
 
 $('#arenaBtn').onclick = () => { renderArenaSheet(); openSheet('arenaSheet'); };
 
+/* ---------------- 👤 speculator profile — live game dashboard --------------- */
+/* Create a profile, then every speculation you place anywhere in the forest
+   (seeds, guesses, the form below) is tracked here LIVE: open positions
+   re-price against real quotes every 30s, settled ones build your record,
+   record builds XP, XP builds your rank. All localStorage, all pretend money. */
+const PROF_FACES = ['🦊', '🦉', '🐺', '🐢', '🦁', '🐸', '🐙', '🦄', '🐝', '🦈', '🐿️', '🐉'];
+let PROF = JSON.parse(localStorage.getItem('profile') || 'null');
+let profHistory = JSON.parse(localStorage.getItem('profHistory') || '[]');
+let profPickFace = PROF ? PROF.avatar : PROF_FACES[0];
+let profEditing = false;
+function saveProf() {
+  localStorage.setItem('profile', JSON.stringify(PROF));
+  localStorage.setItem('profHistory', JSON.stringify(profHistory));
+}
+const profLevel = xp => Math.min(6, Math.floor(Math.sqrt((xp || 0) / 60)));
+const profLevelFloor = lv => 60 * lv * lv;
+
+/* every settle (auto or harvest) flows through here → history + XP + rank */
+function recordSettle(s, pnl) {
+  profHistory.unshift({
+    t: Date.now(), symbol: s.symbol, dir: s.dir, amount: s.amount,
+    entry: s.entry, pnl: +pnl.toFixed(2), game: s.game || 'seed',
+  });
+  if (profHistory.length > 80) profHistory.pop();
+  if (PROF) {
+    const win = pnl >= 0;
+    PROF.streak = win ? Math.max(1, PROF.streak + 1) : Math.min(-1, PROF.streak - 1);
+    if (win) { PROF.wins++; PROF.xp += 25 + Math.max(0, PROF.streak - 1) * 5; }
+    else { PROF.losses++; PROF.xp += 10; }
+    if (PROF.bestPnl == null || pnl > PROF.bestPnl) PROF.bestPnl = +pnl.toFixed(2);
+    if (PROF.worstPnl == null || pnl < PROF.worstPnl) PROF.worstPnl = +pnl.toFixed(2);
+  }
+  saveProf();
+  renderProfStrip();
+}
+
+function profOpenPnl() {
+  return garden.reduce((a, s) => a + seedValue(s).pnl, 0);
+}
+
+function renderProfStrip() {
+  const strip = $('#profStrip');
+  if (!strip) return;
+  strip.hidden = false;
+  const body = $('#profBody');
+
+  if (!PROF || profEditing) {
+    const faces = PROF_FACES.map(f =>
+      `<button class="prof-face ${f === profPickFace ? 'on' : ''}" data-f="${f}">${f}</button>`).join('');
+    body.innerHTML = `
+      <div class="prof-create">
+        <div class="prof-create-h">${profEditing ? L().profEdit : L().profCreateH}</div>
+        <p class="prof-create-sub">${L().profCreateSub}</p>
+        <div class="prof-faces">${faces}</div>
+        <div class="prof-create-row">
+          <input id="profName" class="prof-name-in" maxlength="24" placeholder="${L().profNamePh}"
+            value="${PROF ? escapeHtml(PROF.name) : ''}" />
+          <button class="cp-btn" id="profCreateBtn">${profEditing ? L().profSave : L().profStart}</button>
+        </div>
+      </div>`;
+    body.querySelectorAll('.prof-face').forEach(b => b.onclick = () => {
+      profPickFace = b.dataset.f;
+      body.querySelectorAll('.prof-face').forEach(x => x.classList.toggle('on', x.dataset.f === profPickFace));
+      sfx('pop');
+    });
+    $('#profCreateBtn').onclick = () => {
+      const name = ($('#profName').value || '').trim() || 'Speculator';
+      if (!PROF) PROF = { name, avatar: profPickFace, created: Date.now(), xp: 0, wins: 0, losses: 0, streak: 0, bestPnl: null, worstPnl: null };
+      else { PROF.name = name; PROF.avatar = profPickFace; }
+      profEditing = false;
+      saveProf(); sfx('pop');
+      renderProfStrip();
+    };
+    $('#profBtnLabel').textContent = L().profBtn;
+    return;
+  }
+
+  const lv = profLevel(PROF.xp);
+  const nextFloor = profLevelFloor(lv + 1), floor = profLevelFloor(lv);
+  const prog = lv >= 6 ? 100 : Math.round(100 * (PROF.xp - floor) / (nextFloor - floor));
+  const open = garden.length;
+  const openPnl = profOpenPnl();
+  const settled = PROF.wins + PROF.losses;
+  const hitRate = settled ? Math.round(100 * PROF.wins / settled) : null;
+  body.innerHTML = `
+    <div class="prof-bar">
+      <span class="prof-avatar">${PROF.avatar}</span>
+      <div class="prof-id">
+        <b>${escapeHtml(PROF.name)}</b>
+        <div class="prof-rank">${L().profLevels[lv]} · <span class="prof-xp">${PROF.xp} xp</span></div>
+        <div class="prof-xpbar"><i style="width:${prog}%"></i></div>
+      </div>
+      <div class="prof-quick">
+        <span class="prof-chip">💰 $${wallet.toFixed(2)}</span>
+        <span class="prof-chip">🌱 ${gardenScore >= 0 ? '+' : ''}${Math.round(gardenScore)}</span>
+        ${hitRate != null ? `<span class="prof-chip">🎯 ${hitRate}%</span>` : ''}
+        <span class="prof-chip prof-live-chip ${open ? (openPnl >= 0 ? 'up' : 'down') : ''}" id="profLivePnl">
+          📡 ${open} ${L().profLive} ${open ? `· ${openPnl >= 0 ? '+' : '−'}$${Math.abs(openPnl).toFixed(2)}` : ''}</span>
+      </div>
+      <button class="cp-btn prof-open-btn" id="profOpenBtn">👤 ${L().profBtn}</button>
+    </div>`;
+  $('#profOpenBtn').onclick = () => { renderProfSheet(); openSheet('profileSheet'); };
+  $('#profBtnLabel').textContent = PROF.avatar + ' ' + PROF.name.split(' ')[0];
+}
+
+function renderProfSheet() {
+  const body = $('#profSheetBody');
+  if (!PROF) { body.innerHTML = ''; renderProfStrip(); return; }
+  const settled = PROF.wins + PROF.losses;
+  const hitRate = settled ? Math.round(100 * PROF.wins / settled) : 0;
+  const lv = profLevel(PROF.xp);
+
+  const openRows = garden.map((s, i) => {
+    const t = DATA.trees.find(x => x.symbol === s.symbol);
+    const { pnl } = seedValue(s);
+    const good = pnl >= 0;
+    return `<div class="prof-pos ${good ? 'up' : 'down'}">
+      <span class="pp-ico">${s.game === 'guess' ? '🎯' : s.dir > 0 ? '🌱' : '🥀'}</span>
+      <div class="pp-main"><b>${t ? t.char + ' ' + escapeHtml(t.name) : s.symbol}</b>
+        · ${s.dir > 0 ? L().seedLong : L().seedShort} · $${s.amount}
+        <div class="imp-why">${fmtMoney(s.entry)} → <span class="pp-now">${t ? fmtMoney(t.price) : '—'}</span> · ${countdown(s)}</div></div>
+      <span class="pp-pnl">${good ? '+' : '−'}$${Math.abs(pnl).toFixed(2)}</span>
+    </div>`;
+  }).join('');
+
+  const histRows = profHistory.slice(0, 20).map(h => {
+    const t = DATA.trees.find(x => x.symbol === h.symbol);
+    const good = h.pnl >= 0;
+    return `<div class="prof-hist ${good ? 'up' : 'down'}">
+      <span>${good ? '🎉' : '💸'}</span>
+      <span class="ph-main">${t ? t.char : ''} ${h.symbol} ${h.dir > 0 ? '🌱' : '🥀'} $${h.amount} · ${new Date(h.t).toISOString().slice(5, 10)}</span>
+      <b>${good ? '+' : '−'}$${Math.abs(h.pnl).toFixed(2)}</b>
+    </div>`;
+  }).join('');
+
+  const treeOpts = DATA.trees.filter(t => t.price != null)
+    .map(t => `<option value="${t.symbol}">${t.char} ${t.symbol} — ${escapeHtml(t.name)}</option>`).join('');
+
+  body.innerHTML = `
+    <div class="prof-sheet-head">
+      <span class="prof-avatar big">${PROF.avatar}</span>
+      <div><b class="prof-sheet-name">${escapeHtml(PROF.name)}</b>
+        <div class="prof-rank">${L().profLevels[lv]} · ${PROF.xp} xp</div>
+        <div class="imp-why">${L().profXpNote}</div></div>
+      <button class="hz-btn" id="profEditBtn">${L().profEdit}</button>
+    </div>
+    <div class="prof-stats">
+      <div class="ps-cell"><b>${PROF.wins}</b>${L().profWins}</div>
+      <div class="ps-cell"><b>${PROF.losses}</b>${L().profLosses}</div>
+      <div class="ps-cell"><b>${hitRate}%</b>${L().profHit}</div>
+      <div class="ps-cell"><b>${PROF.streak > 0 ? '🔥' + PROF.streak : PROF.streak < 0 ? '🥶' + Math.abs(PROF.streak) : '—'}</b>${L().profStreak}</div>
+      <div class="ps-cell"><b>${PROF.bestPnl != null ? '+$' + Math.abs(PROF.bestPnl).toFixed(2) : '—'}</b>${L().profBest}</div>
+      <div class="ps-cell"><b>${PROF.worstPnl != null ? '−$' + Math.abs(PROF.worstPnl).toFixed(2) : '—'}</b>${L().profWorst}</div>
+    </div>
+    <div class="prof-sec-h">${L().profOpen}</div>
+    ${openRows || `<p class="prof-empty">${L().profNoOpen}</p>`}
+    <div class="prof-sec-h">${L().profNewH}</div>
+    <div class="prof-new">
+      <select id="specTree" class="prof-select">${treeOpts}</select>
+      <div class="prof-new-row">
+        <button class="hz-btn spec-dir on" data-d="1">${L().profGrow}</button>
+        <button class="hz-btn spec-dir" data-d="-1">${L().profWilt}</button>
+        <span class="prof-new-gap"></span>
+        ${[25, 50, 100, 250].map((v, i) => `<button class="hz-btn spec-stake ${i === 2 ? 'on' : ''}" data-v="${v}">$${v}</button>`).join('')}
+        <span class="prof-new-gap"></span>
+        ${HORIZONS.map((h, i) => `<button class="hz-btn spec-hz ${i === 2 ? 'on' : ''}" data-h="${h.key}">${hzLabel(h.key)}</button>`).join('')}
+      </div>
+      <button class="cp-btn" id="specPlace">${L().profPlace}</button>
+    </div>
+    <div class="prof-sec-h">${L().profHistoryH}</div>
+    ${histRows || `<p class="prof-empty">${L().profNoHistory}</p>`}
+    <p class="bets-note">${L().profNote}</p>`;
+
+  $('#profEditBtn').onclick = () => { profEditing = true; profPickFace = PROF.avatar; closeSheet('profileSheet'); renderProfStrip(); $('#profStrip').scrollIntoView({ behavior: 'smooth' }); };
+  const pick = (sel, attr) => body.querySelectorAll(sel).forEach(b => b.onclick = () => {
+    body.querySelectorAll(sel).forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+  });
+  pick('.spec-dir'); pick('.spec-stake'); pick('.spec-hz');
+  $('#specPlace').onclick = () => {
+    const sym = $('#specTree').value;
+    const t = DATA.trees.find(x => x.symbol === sym);
+    if (!t || t.price == null) { toast('⚠ no live price for this tree right now'); return; }
+    const dir = +body.querySelector('.spec-dir.on').dataset.d;
+    const amount = +body.querySelector('.spec-stake.on').dataset.v;
+    const hz = HORIZONS.find(h => h.key === body.querySelector('.spec-hz.on').dataset.h);
+    garden.push({
+      symbol: sym, dir, amount, entry: t.price,
+      date: new Date().toISOString().slice(0, 10),
+      hzKey: hz.key, expiresAt: Date.now() + hz.days * 86400000,
+    });
+    saveGarden(); sfx('pop');
+    toast(L().profPlaced);
+    renderSeedBadges(); renderGardenBtn(); renderProfSheet(); renderProfStrip();
+  };
+}
+
+/* the realtime pulse: re-quote open symbols every 30s so P&L ticks live */
+async function profLiveTick() {
+  if (!DATA || !garden.length) { renderProfStrip(); return; }
+  const syms = [...new Set(garden.map(s => s.symbol))].slice(0, 6);
+  let changed = false;
+  for (const sym of syms) {
+    try {
+      const j = await (await fetch(`/api/quote?symbol=${sym}`)).json();
+      const t = DATA.trees.find(x => x.symbol === sym);
+      if (t && j.quote && j.quote.price != null && j.quote.price !== t.price) {
+        t.price = j.quote.price;
+        changed = true;
+        const tree = treeEls[sym];
+        if (tree) tree.querySelector('.tree-price').textContent = fmtMoney(t.price);
+      }
+    } catch (e) { /* next tick */ }
+  }
+  renderProfStrip();
+  renderGardenBtn();
+  if (changed && $('#profileSheet').classList.contains('open')) renderProfSheet();
+  const chip = $('#profLivePnl');
+  if (chip && changed) { chip.classList.remove('tick'); void chip.offsetWidth; chip.classList.add('tick'); }
+}
+
+$('#profBtn').onclick = () => {
+  if (!PROF) { $('#profStrip').scrollIntoView({ behavior: 'smooth' }); renderProfStrip(); return; }
+  renderProfSheet(); openSheet('profileSheet');
+};
+
 /* ---------------- panel plumbing + Escape ---------------- */
 function openPanel() { $('#cloudPanel').classList.add('open'); $('#cloudScrim').classList.add('on'); }
 function closePanel() {
@@ -1269,8 +1543,8 @@ function closePanel() {
   window.speechSynthesis && window.speechSynthesis.cancel();
 }
 $('#cpClose').onclick = closePanel;
-$('#cloudScrim').onclick = () => { closePanel(); closeSheet('newsSheet'); closeSheet('gardenSheet'); closeSheet('simSheet'); closeSheet('arenaSheet'); };
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closePanel(); closeSheet('newsSheet'); closeSheet('gardenSheet'); closeSheet('simSheet'); closeSheet('arenaSheet'); } });
+$('#cloudScrim').onclick = () => { closePanel(); closeSheet('newsSheet'); closeSheet('gardenSheet'); closeSheet('simSheet'); closeSheet('arenaSheet'); closeSheet('profileSheet'); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closePanel(); closeSheet('newsSheet'); closeSheet('gardenSheet'); closeSheet('simSheet'); closeSheet('arenaSheet'); closeSheet('profileSheet'); } });
 
 /* ---------------- tiny synth sound fx ---------------- */
 let AC = null, soundOn = true;

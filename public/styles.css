@@ -676,3 +676,59 @@ input[type=date],input[type=number]{font-family:'Space Mono',monospace;font-size
 .arena-row.arena-learner{background:#efe9ff}
 .ar-tag{font-family:'Space Mono',monospace;font-size:9.5px;font-weight:700;background:#fff;
   border:2px solid var(--ink);border-radius:100px;padding:1px 7px;vertical-align:2px;text-transform:uppercase}
+
+/* 👤 speculator profile */
+.hud-btn-prof{background:#e2f4ff}
+.prof-strip{max-width:1200px;margin:10px auto 0;padding:12px 16px;background:#e2f4ff;
+  border:var(--line);border-radius:16px;box-shadow:var(--shadow-sm)}
+.prof-strip[hidden]{display:none}
+.prof-create-h{font-family:'Archivo Black',sans-serif;font-size:16px}
+.prof-create-sub{font-size:13.5px;margin:6px 0 10px;max-width:760px}
+.prof-faces{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.prof-face{font-size:22px;background:#fff;border:3px solid var(--ink);border-radius:12px;
+  padding:6px 9px;cursor:pointer;transition:transform .1s}
+.prof-face:hover{transform:translateY(-2px)}
+.prof-face.on{background:var(--yellow);box-shadow:3px 3px 0 var(--ink)}
+.prof-create-row{display:flex;gap:10px;flex-wrap:wrap}
+.prof-name-in{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;flex:1;min-width:200px;
+  padding:10px 12px;border:3px solid var(--ink);border-radius:12px;background:#fff}
+.prof-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.prof-avatar{font-size:34px;background:#fff;border:3px solid var(--ink);border-radius:14px;padding:4px 8px}
+.prof-avatar.big{font-size:40px}
+.prof-id{min-width:170px}
+.prof-id b{font-family:'Archivo Black',sans-serif;font-size:16px}
+.prof-rank{font-family:'Space Mono',monospace;font-size:11.5px;font-weight:700;opacity:.85}
+.prof-xpbar{width:160px;height:9px;background:#fff;border:2px solid var(--ink);border-radius:6px;overflow:hidden;margin-top:3px}
+.prof-xpbar i{display:block;height:100%;background:linear-gradient(90deg,#ffd93d,#f39c12)}
+.prof-quick{display:flex;gap:7px;flex-wrap:wrap;flex:1}
+.prof-chip{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;background:#fff;
+  border:2px solid var(--ink);border-radius:100px;padding:4px 11px}
+.prof-live-chip.up{background:#d8f7e4}.prof-live-chip.down{background:#ffe3df}
+.prof-live-chip.tick{animation:profTick .5s ease-out}
+@keyframes profTick{0%{transform:scale(1.12)}100%{transform:scale(1)}}
+.prof-open-btn{padding:9px 14px;font-size:13px}
+.prof-sheet-head{display:flex;align-items:center;gap:12px;padding:10px 12px;flex-wrap:wrap}
+.prof-sheet-name{font-family:'Archivo Black',sans-serif;font-size:18px}
+.prof-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:7px;padding:4px 12px 10px}
+.ps-cell{background:#fff;border:2px solid var(--ink);border-radius:10px;padding:7px;text-align:center;
+  font-family:'Space Mono',monospace;font-size:10.5px;opacity:.95}
+.ps-cell b{display:block;font-size:15px}
+.prof-sec-h{font-family:'Archivo Black',sans-serif;font-size:13px;text-transform:uppercase;padding:10px 12px 6px}
+.prof-pos{display:flex;align-items:center;gap:9px;background:#fff;border:2px solid var(--ink);
+  border-radius:10px;padding:7px 10px;margin:0 12px 6px}
+.prof-pos.up{background:#f0fff5}.prof-pos.down{background:#fff4f2}
+.pp-ico{font-size:18px}
+.pp-main{flex:1;font-size:13px;line-height:1.3}
+.pp-pnl{font-family:'Space Mono',monospace;font-weight:700;font-size:14px}
+.prof-pos.up .pp-pnl{color:#1c7a45}.prof-pos.down .pp-pnl{color:#b3271c}
+.prof-empty{font-size:13px;opacity:.7;padding:2px 14px 6px}
+.prof-new{padding:0 12px 8px}
+.prof-select{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;width:100%;
+  padding:9px 10px;border:3px solid var(--ink);border-radius:12px;background:#fff;margin-bottom:8px}
+.prof-new-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.prof-new-gap{width:8px}
+.spec-dir.on,.spec-stake.on,.spec-hz.on{background:var(--ink);color:var(--paper)}
+.prof-hist{display:flex;align-items:center;gap:8px;font-family:'Space Mono',monospace;font-size:12px;
+  background:#fff;border:2px solid var(--ink);border-radius:8px;padding:5px 10px;margin:0 12px 5px}
+.prof-hist.up b{color:#1c7a45}.prof-hist.down b{color:#b3271c}
+.ph-main{flex:1}

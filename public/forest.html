@@ -41,6 +41,11 @@
   <div class="story-lines" id="storyLines"></div>
 </div>
 
+<!-- 👤 speculator profile — create it, then watch your calls live -->
+<div class="prof-strip" id="profStrip" hidden>
+  <div id="profBody"></div>
+</div>
+
 <!-- 🎯 my first $10 — beginner guessing game -->
 <div class="guess-strip" id="guessStrip" hidden>
   <div class="guess-head">
@@ -72,6 +77,7 @@
     <span data-i18n="lg1">💧 waters</span><span data-i18n="lg2">☠️ poisons</span>
     <button id="newsListBtn" class="hud-btn">📰 <span data-i18n="newsList">news list</span></button>
     <button id="gardenBtn" class="hud-btn">🌱 <span data-i18n="garden">my garden</span> <b id="gardenScore">0</b></button>
+    <button id="profBtn" class="hud-btn hud-btn-prof">👤 <span id="profBtnLabel" data-i18n="profBtn">profile</span></button>
     <button id="simBtn" class="hud-btn hud-btn-sim">⚡ <span data-i18n="simBtn">cloud casino</span></button>
     <button id="arenaBtn" class="hud-btn hud-btn-arena">🎭 <span data-i18n="arenaBtn">analyst arena</span></button>
     <button id="soundToggle" class="snd-toggle" title="sound on/off">🔊</button>
@@ -107,6 +113,10 @@
 <div class="sheet" id="arenaSheet" role="dialog" aria-modal="true" aria-label="analyst arena">
   <div class="sheet-head"><span>🎭 <span data-i18n="arenaTitle">Analyst Arena — 12 characters vs a year of real history</span></span><button class="cp-close sheet-close" data-close="arenaSheet">✕</button></div>
   <div class="sheet-body" id="arenaSheetBody"></div>
+</div>
+<div class="sheet" id="profileSheet" role="dialog" aria-modal="true" aria-label="speculator profile">
+  <div class="sheet-head"><span>👤 <span data-i18n="profTitle">Speculator profile — your live game dashboard</span></span><button class="cp-close sheet-close" data-close="profileSheet">✕</button></div>
+  <div class="sheet-body" id="profSheetBody"></div>
 </div>
 
 <!-- onboarding tour -->
