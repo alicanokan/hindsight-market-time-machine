@@ -65,6 +65,19 @@ const STR = {
     walletWin: '🎉 guess won!', walletLoss: '💸 guess lost —',
     notEnough: '💸 not enough in the wallet — lower the stake',
     guessNote: 'Pretend dollars, REAL prices — every guess settles at tomorrow\'s actual market price. A game for learning, NOT financial advice and NOT real money.',
+    arenaBtn: 'analyst arena',
+    arenaTitle: 'Analyst Arena — 10 characters vs a year of real history',
+    arenaPick: 'Ten analyst characters replay the <b>last year of REAL daily prices</b> for a tree you pick. Every call is made using <b>only the data that existed before that day</b> — no peeking, no hindsight. Then they get scored against what actually happened.',
+    arenaRun: '🎬 Run 1-year replay',
+    arenaLoading: 'fetching a year of real prices…',
+    arenaBoard: '🏆 Leaderboard — {n} scored next-day calls each',
+    arenaAcc: 'hit rate', arenaWorth: '$100 →',
+    arenaHold: '🌳 reference: just buying & holding turned $100 into <b>{v}</b> over the same year.',
+    arenaTomorrow: '🔮 Their calls for tomorrow',
+    arenaMonkey: '🐒 <b>The Monkey beat {n} of the 9 "experts"</b> on this tree this year. Let that sink in before trusting any forecast — including this game\'s.',
+    arenaMonkeyZero: '🐒 The Monkey lost to every expert this year — rare! Re-run on another tree before you start trusting experts.',
+    arenaNote: 'Walk-forward test on real history: each character is a mechanical rule that sees only the past at every step. Whoever tops this board learned THIS year\'s weather on THIS tree — re-run on another tree and the podium reshuffles. That instability is the lesson. A game, NOT advice.',
+    arenaErr: '⚠ could not fetch history — the free data source may be napping, try again in a minute',
     hz1h: '1 hour', hz1d: '1 day', hz1w: '1 week', hz30d: '1 month',
     hourNote: '🎲 at 1-hour scale, luck rules — basically a coin-flip with vibes',
     settled: '⏰ bet settled:', left: 'left', manual: '♾ manual',
@@ -129,6 +142,19 @@ const STR = {
     walletWin: '🎉 tahmin tuttu!', walletLoss: '💸 tahmin tutmadı —',
     notEnough: '💸 cüzdanda yeterli para yok — bahsi düşür',
     guessNote: 'Hayali dolarlar, GERÇEK fiyatlar — her tahmin yarının gerçek piyasa fiyatıyla kapanır. Öğrenmek için bir oyun, yatırım tavsiyesi DEĞİL, gerçek para DEĞİL.',
+    arenaBtn: 'analist arenası',
+    arenaTitle: 'Analist Arenası — 10 karakter, 1 yıl gerçek tarih',
+    arenaPick: 'On analist karakteri, seçtiğin ağacın <b>son bir yıllık GERÇEK günlük fiyatlarını</b> yeniden oynar. Her tahmin <b>yalnızca o günden önce var olan verilerle</b> yapılır — dikizlemek yok, sonradan akıl yok. Sonra gerçekte olanlara göre puanlanırlar.',
+    arenaRun: '🎬 1 yıllık tekrarı oynat',
+    arenaLoading: 'bir yıllık gerçek fiyatlar getiriliyor…',
+    arenaBoard: '🏆 Lider tablosu — her biri {n} puanlı ertesi-gün tahmini',
+    arenaAcc: 'isabet', arenaWorth: '100$ →',
+    arenaHold: '🌳 referans: sadece alıp tutmak aynı yılda 100$\'ı <b>{v}</b> yaptı.',
+    arenaTomorrow: '🔮 Yarın için tahminleri',
+    arenaMonkey: '🐒 <b>Maymun bu yıl bu ağaçta 9 "uzmanın" {n} tanesini yendi.</b> Herhangi bir tahmine güvenmeden önce bunu bir düşün — bu oyununki dahil.',
+    arenaMonkeyZero: '🐒 Maymun bu yıl herkese yenildi — nadir bir yıl! Uzmanlara güvenmeye başlamadan önce başka bir ağaçta tekrar dene.',
+    arenaNote: 'Gerçek tarih üzerinde ileriye-yürüyen test: her karakter, her adımda yalnızca geçmişi gören mekanik bir kural. Bu tabloyu kim kazandıysa BU ağaçta BU yılın havasını öğrendi — başka bir ağaçta tekrar oynat, podyum karışır. O istikrarsızlık dersin kendisi. Bir oyun, tavsiye DEĞİL.',
+    arenaErr: '⚠ tarih verisi gelmedi — ücretsiz kaynak uyukluyor olabilir, bir dakika sonra tekrar dene',
     hz1h: '1 saat', hz1d: '1 gün', hz1w: '1 hafta', hz30d: '1 ay',
     hourNote: '🎲 1 saatlik ölçekte şans konuşur — hisli bir yazı-tura',
     settled: '⏰ bahis kapandı:', left: 'kaldı', manual: '♾ elle',
@@ -995,6 +1021,185 @@ async function runSim() {
 
 $('#simBtn').onclick = () => { renderSimSheet(); openSheet('simSheet'); };
 
+/* ---------------- 🎭 analyst arena — walk-forward history replay ----------- */
+/* Ten characters, each a MECHANICAL rule. They replay ~1 year of real daily
+   prices; at every day they see only prices[0..i] and call the NEXT day's
+   direction, then get scored against what really happened. No peeking — no
+   look-ahead, no hindsight-flavored "wisdom". The Monkey guesses randomly:
+   any "expert" who can't beat the monkey is the lesson, pre-installed. */
+
+// tiny stats helpers — all windows end at index i (today), never beyond
+const aSMA = (p, i, n) => { let s = 0; for (let k = i - n + 1; k <= i; k++) s += p[k]; return s / n; };
+const aRet = (p, i, n) => p[i] / p[i - n] - 1;
+const aVol = (p, i, n) => { // stdev of daily returns over the last n days
+  const rs = []; for (let k = i - n + 1; k <= i; k++) rs.push(p[k] / p[k - 1] - 1);
+  const m = rs.reduce((a, b) => a + b, 0) / rs.length;
+  return Math.sqrt(rs.reduce((a, r) => a + (r - m) ** 2, 0) / rs.length);
+};
+const aHi = (p, i, n) => { let h = -Infinity; for (let k = i - n; k < i; k++) h = Math.max(h, p[k]); return h; };
+const aLo = (p, i, n) => { let l = Infinity; for (let k = i - n; k < i; k++) l = Math.min(l, p[k]); return l; };
+
+// Each: call(p, i) → +1 (grows) / −1 (wilts), using only p[0..i].
+// why(d, p, i) → one line of reasoning in their own voice (English, like all analysis text).
+const ARENA_CAST = [
+  { key: 'marge', face: '🤠', name: 'Marge the Trend Rider',
+    call: (p, i) => aSMA(p, i, 10) >= aSMA(p, i, 30) ? 1 : -1,
+    why: d => d > 0 ? 'the 10-day trail is riding above the 30-day trail — I follow the herd uphill.'
+                    : 'the 10-day trail dipped under the 30-day trail — the herd is heading downhill and so am I.' },
+  { key: 'viktor', face: '🧛', name: 'Viktor the Contrarian',
+    call: (p, i) => aRet(p, i, 5) > 0 ? -1 : 1,
+    why: d => d > 0 ? 'everyone sold for five days… vhich means everyone who wanted to sell already has. I buy their fear.'
+                    : 'five green days — the crowd is euphoric, and euphoria is alvays for sale.' },
+  { key: 'momo', face: '🐆', name: 'Momo the Momentum Chaser',
+    call: (p, i) => aRet(p, i, 3) >= 0 ? 1 : -1,
+    why: d => d > 0 ? 'it moved up the last 3 days — whatever is moving, KEEPS moving. Catch it!'
+                    : 'it slid the last 3 days — falling things fall faster. Chase the slide!' },
+  { key: 'grandma', face: '👵', name: 'Grandma Reversion',
+    call: (p, i) => p[i] <= aSMA(p, i, 20) ? 1 : -1,
+    why: d => d > 0 ? 'the price wandered below its 20-day home, dear. Everything comes back home eventually.'
+                    : 'it\'s stretched above its 20-day home — too far from home, time to come back, sweetie.' },
+  { key: 'bill', face: '🧗', name: 'Breakout Bill',
+    call: (p, i) => p[i] >= aHi(p, i, 20) ? 1 : p[i] <= aLo(p, i, 20) ? -1 : (p[i] >= p[i - 1] ? 1 : -1),
+    why: (d, p, i) => p[i] >= aHi(p, i, 20) ? 'BOOM — a fresh 20-day high! Walls that break stay broken. Straight up.'
+      : p[i] <= aLo(p, i, 20) ? 'it smashed through the 20-day floor — when the floor gives way, you fall.'
+      : 'no breakout yet — I drift with yesterday and wait for the wall to crack.' },
+  { key: 'volatilius', face: '🧪', name: 'Dr. Volatilius',
+    call: (p, i) => aVol(p, i, 5) <= aVol(p, i, 20) ? (aRet(p, i, 5) >= 0 ? 1 : -1) : (aRet(p, i, 5) >= 0 ? -1 : 1),
+    why: (d, p, i) => aVol(p, i, 5) <= aVol(p, i, 20)
+      ? 'volatility is compressing — calm markets keep their direction. I extrapolate the drift.'
+      : 'volatility is spiking — turbulence snaps trends back. I bet against the recent move.' },
+  { key: 'sunny', face: '☀️', name: 'Sunny the Permabull',
+    call: () => 1,
+    why: () => 'up! It always goes up eventually, and I refuse to miss the day it does.' },
+  { key: 'boris', face: '🐻', name: 'Boris the Permabear',
+    call: () => -1,
+    why: () => 'down. It is all a bubble. It was a bubble yesterday and it is a bigger bubble today.' },
+  // The Committee votes on everyone above (never the monkey). Must stay 9th.
+  { key: 'committee', face: '🏛️', name: 'The Committee', vote: true,
+    why: d => d > 0 ? 'after careful deliberation, the majority of our members lean constructive on the near term.'
+                    : 'after careful deliberation, the majority of our members advise near-term caution.' },
+  { key: 'monkey', face: '🐒', name: 'The Monkey', monkey: true,
+    call: () => Math.random() < 0.5 ? -1 : 1,
+    why: () => '🎯 *throws dart* …that one! The banana told me.' },
+];
+const ARENA_WARM = 31; // longest lookback (30d SMA/vol) + 1 so every rule has data
+
+function arenaCallAt(prices, i) {
+  // one day's calls for the whole cast; committee = majority of the 8 humans
+  const calls = {};
+  let sum = 0;
+  for (const c of ARENA_CAST) {
+    if (c.vote) calls[c.key] = sum >= 0 ? 1 : -1;
+    else calls[c.key] = c.call(prices, i);
+    if (!c.vote && !c.monkey) sum += calls[c.key];
+  }
+  return calls;
+}
+
+function runArenaReplay(prices) {
+  const rows = ARENA_CAST.map(c => ({ c, hits: 0, n: 0, equity: 100 }));
+  for (let i = ARENA_WARM; i < prices.length - 1; i++) {
+    const ret = prices[i + 1] / prices[i] - 1;
+    if (ret === 0) continue; // flat day — nobody scores
+    const calls = arenaCallAt(prices, i);
+    for (const r of rows) {
+      const d = calls[r.c.key];
+      r.n++;
+      if ((d > 0) === (ret > 0)) r.hits++;
+      r.equity *= 1 + d * ret; // long the call up, short it down
+    }
+  }
+  return {
+    rows: rows.sort((a, b) => b.hits / b.n - a.hits / a.n),
+    holdEquity: 100 * (prices[prices.length - 1] / prices[ARENA_WARM]),
+    tomorrow: arenaCallAt(prices, prices.length - 1),
+  };
+}
+
+let arenaSym = localStorage.getItem('arenaSym') || 'BTC';
+const ARENA_CACHE = {}; // symbol → closes[]; one fetch per tree per visit
+
+function renderArenaSheet() {
+  const body = $('#arenaSheetBody');
+  const trees = DATA ? DATA.trees : [];
+  if (!trees.find(t => t.symbol === arenaSym)) arenaSym = trees[0] ? trees[0].symbol : 'BTC';
+  body.innerHTML = `
+    <p class="arena-pitch">${L().arenaPick}</p>
+    <div class="arena-pick">${trees.map(t =>
+      `<button class="hz-btn arena-coin ${t.symbol === arenaSym ? 'active' : ''}" data-s="${t.symbol}">${t.char} ${t.symbol}</button>`).join('')}</div>
+    <button class="cp-btn sim-run" id="arenaRunBtn">${L().arenaRun}</button>
+    <div class="arena-out" id="arenaOut"></div>
+    <p class="bets-note arena-note">${L().arenaNote}</p>`;
+  body.querySelectorAll('.arena-coin').forEach(b => b.onclick = () => {
+    arenaSym = b.dataset.s;
+    localStorage.setItem('arenaSym', arenaSym);
+    body.querySelectorAll('.arena-coin').forEach(x => x.classList.toggle('active', x.dataset.s === arenaSym));
+  });
+  $('#arenaRunBtn').onclick = runArena;
+}
+
+async function runArena() {
+  const out = $('#arenaOut');
+  const btn = $('#arenaRunBtn');
+  btn.disabled = true;
+  out.innerHTML = `<div class="ai-loading arena-loading">${L().arenaLoading}</div>`;
+  try {
+    if (!ARENA_CACHE[arenaSym]) {
+      const r = await fetch(`/api/history?symbol=${encodeURIComponent(arenaSym)}&days=430`);
+      const j = await r.json();
+      if (j.error || !j.points || j.points.length < ARENA_WARM + 30) throw new Error(j.error || 'not enough history');
+      // some providers return more than asked — trim to 1 year + warmup so
+      // "1-year replay" stays honest for every tree
+      const cutoff = j.points[j.points.length - 1].t - (365 + 45) * 86400000;
+      ARENA_CACHE[arenaSym] = j.points.filter(p => p.t >= cutoff).map(p => p.price);
+    }
+    const prices = ARENA_CACHE[arenaSym];
+    const { rows, holdEquity, tomorrow } = runArenaReplay(prices);
+    const tree = DATA.trees.find(t => t.symbol === arenaSym);
+    sfx('rain');
+
+    const monkey = rows.find(r => r.c.monkey);
+    const monkeyAcc = monkey.hits / monkey.n;
+    const beaten = rows.filter(r => !r.c.monkey && r.hits / r.n < monkeyAcc).length;
+    const fmt$ = v => (v >= 100 ? '💰 ' : '💸 ') + '$' + v.toFixed(0);
+
+    const board = rows.map((r, rank) => {
+      const acc = 100 * r.hits / r.n;
+      const medal = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : `${rank + 1}.`;
+      return `<div class="arena-row ${r.c.monkey ? 'arena-monkey' : ''}">
+        <span class="ar-rank">${medal}</span>
+        <span class="ar-face">${r.c.face}</span>
+        <span class="ar-name">${r.c.name}</span>
+        <span class="ar-bar"><i style="width:${acc.toFixed(1)}%"></i></span>
+        <span class="ar-acc">${acc.toFixed(1)}%</span>
+        <span class="ar-worth">${L().arenaWorth} ${fmt$(r.equity)}</span>
+      </div>`;
+    }).join('');
+
+    const calls = ARENA_CAST.map(c => {
+      const d = tomorrow[c.key];
+      return `<div class="arena-call ${d > 0 ? 'up' : 'down'}">
+        <span class="ar-face">${c.face}</span>
+        <div class="ac-main"><b>${c.name}</b> · ${d > 0 ? L().dirGrow : L().dirWilt}
+          <div class="imp-why">“${escapeHtml(c.why(d, prices, prices.length - 1))}”</div></div>
+      </div>`;
+    }).join('');
+
+    out.innerHTML = `
+      <div class="arena-board-h">${L().arenaBoard.replace('{n}', rows[0].n)} · ${tree ? tree.char + ' ' + escapeHtml(tree.name) : arenaSym}</div>
+      <div class="arena-board">${board}</div>
+      <div class="arena-lesson">${beaten > 0 ? L().arenaMonkey.replace('{n}', beaten) : L().arenaMonkeyZero}</div>
+      <div class="arena-hold">${L().arenaHold.replace('{v}', fmt$(holdEquity))}</div>
+      <div class="arena-board-h">${L().arenaTomorrow}</div>
+      <div class="arena-calls">${calls}</div>`;
+  } catch (e) {
+    out.innerHTML = `<p class="sim-warn">${L().arenaErr}</p>`;
+  }
+  btn.disabled = false;
+}
+
+$('#arenaBtn').onclick = () => { renderArenaSheet(); openSheet('arenaSheet'); };
+
 /* ---------------- panel plumbing + Escape ---------------- */
 function openPanel() { $('#cloudPanel').classList.add('open'); $('#cloudScrim').classList.add('on'); }
 function closePanel() {
@@ -1003,8 +1208,8 @@ function closePanel() {
   window.speechSynthesis && window.speechSynthesis.cancel();
 }
 $('#cpClose').onclick = closePanel;
-$('#cloudScrim').onclick = () => { closePanel(); closeSheet('newsSheet'); closeSheet('gardenSheet'); closeSheet('simSheet'); };
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closePanel(); closeSheet('newsSheet'); closeSheet('gardenSheet'); closeSheet('simSheet'); } });
+$('#cloudScrim').onclick = () => { closePanel(); closeSheet('newsSheet'); closeSheet('gardenSheet'); closeSheet('simSheet'); closeSheet('arenaSheet'); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closePanel(); closeSheet('newsSheet'); closeSheet('gardenSheet'); closeSheet('simSheet'); closeSheet('arenaSheet'); } });
 
 /* ---------------- tiny synth sound fx ---------------- */
 let AC = null, soundOn = true;
