@@ -66,15 +66,15 @@ const STR = {
     notEnough: '💸 not enough in the wallet — lower the stake',
     guessNote: 'Pretend dollars, REAL prices — every guess settles at tomorrow\'s actual market price. A game for learning, NOT financial advice and NOT real money.',
     arenaBtn: 'analyst arena',
-    arenaTitle: 'Analyst Arena — 10 characters vs a year of real history',
-    arenaPick: 'Ten analyst characters replay the <b>last year of REAL daily prices</b> for a tree you pick. Every call is made using <b>only the data that existed before that day</b> — no peeking, no hindsight. Then they get scored against what actually happened.',
+    arenaTitle: 'Analyst Arena — 12 characters vs a year of real history',
+    arenaPick: 'Twelve analyst characters replay the <b>last year of REAL daily prices</b> for a tree you pick. Every call is made using <b>only the data that existed before that day</b> — no peeking, no hindsight. Ten are fixed rules; 🎓 The Apprentice and 🦉 Professor Hedge <b>learn from everyone\'s hits and misses as the year unfolds</b> — and even they only ever see the past.',
     arenaRun: '🎬 Run 1-year replay',
     arenaLoading: 'fetching a year of real prices…',
     arenaBoard: '🏆 Leaderboard — {n} scored next-day calls each',
     arenaAcc: 'hit rate', arenaWorth: '$100 →',
     arenaHold: '🌳 reference: just buying & holding turned $100 into <b>{v}</b> over the same year.',
     arenaTomorrow: '🔮 Their calls for tomorrow',
-    arenaMonkey: '🐒 <b>The Monkey beat {n} of the 9 "experts"</b> on this tree this year. Let that sink in before trusting any forecast — including this game\'s.',
+    arenaMonkey: '🐒 <b>The Monkey beat {n} of the {total} "experts"</b> on this tree this year. Let that sink in before trusting any forecast — including this game\'s.',
     arenaMonkeyZero: '🐒 The Monkey lost to every expert this year — rare! Re-run on another tree before you start trusting experts.',
     arenaNote: 'Walk-forward test on real history: each character is a mechanical rule that sees only the past at every step. Whoever tops this board learned THIS year\'s weather on THIS tree — re-run on another tree and the podium reshuffles. That instability is the lesson. A game, NOT advice.',
     arenaErr: '⚠ could not fetch history — the free data source may be napping, try again in a minute',
@@ -143,15 +143,15 @@ const STR = {
     notEnough: '💸 cüzdanda yeterli para yok — bahsi düşür',
     guessNote: 'Hayali dolarlar, GERÇEK fiyatlar — her tahmin yarının gerçek piyasa fiyatıyla kapanır. Öğrenmek için bir oyun, yatırım tavsiyesi DEĞİL, gerçek para DEĞİL.',
     arenaBtn: 'analist arenası',
-    arenaTitle: 'Analist Arenası — 10 karakter, 1 yıl gerçek tarih',
-    arenaPick: 'On analist karakteri, seçtiğin ağacın <b>son bir yıllık GERÇEK günlük fiyatlarını</b> yeniden oynar. Her tahmin <b>yalnızca o günden önce var olan verilerle</b> yapılır — dikizlemek yok, sonradan akıl yok. Sonra gerçekte olanlara göre puanlanırlar.',
+    arenaTitle: 'Analist Arenası — 12 karakter, 1 yıl gerçek tarih',
+    arenaPick: 'On iki analist karakteri, seçtiğin ağacın <b>son bir yıllık GERÇEK günlük fiyatlarını</b> yeniden oynar. Her tahmin <b>yalnızca o günden önce var olan verilerle</b> yapılır — dikizlemek yok, sonradan akıl yok. Onu sabit kural; 🎓 Çırak ile 🦉 Profesör Hedge ise <b>yıl ilerledikçe herkesin isabet ve ıskalarından öğrenir</b> — ama onlar bile yalnızca geçmişi görür.',
     arenaRun: '🎬 1 yıllık tekrarı oynat',
     arenaLoading: 'bir yıllık gerçek fiyatlar getiriliyor…',
     arenaBoard: '🏆 Lider tablosu — her biri {n} puanlı ertesi-gün tahmini',
     arenaAcc: 'isabet', arenaWorth: '100$ →',
     arenaHold: '🌳 referans: sadece alıp tutmak aynı yılda 100$\'ı <b>{v}</b> yaptı.',
     arenaTomorrow: '🔮 Yarın için tahminleri',
-    arenaMonkey: '🐒 <b>Maymun bu yıl bu ağaçta 9 "uzmanın" {n} tanesini yendi.</b> Herhangi bir tahmine güvenmeden önce bunu bir düşün — bu oyununki dahil.',
+    arenaMonkey: '🐒 <b>Maymun bu yıl bu ağaçta {total} "uzmanın" {n} tanesini yendi.</b> Herhangi bir tahmine güvenmeden önce bunu bir düşün — bu oyununki dahil.',
     arenaMonkeyZero: '🐒 Maymun bu yıl herkese yenildi — nadir bir yıl! Uzmanlara güvenmeye başlamadan önce başka bir ağaçta tekrar dene.',
     arenaNote: 'Gerçek tarih üzerinde ileriye-yürüyen test: her karakter, her adımda yalnızca geçmişi gören mekanik bir kural. Bu tabloyu kim kazandıysa BU ağaçta BU yılın havasını öğrendi — başka bir ağaçta tekrar oynat, podyum karışır. O istikrarsızlık dersin kendisi. Bir oyun, tavsiye DEĞİL.',
     arenaErr: '⚠ tarih verisi gelmedi — ücretsiz kaynak uyukluyor olabilir, bir dakika sonra tekrar dene',
@@ -1039,8 +1039,42 @@ const aVol = (p, i, n) => { // stdev of daily returns over the last n days
 const aHi = (p, i, n) => { let h = -Infinity; for (let k = i - n; k < i; k++) h = Math.max(h, p[k]); return h; };
 const aLo = (p, i, n) => { let l = Infinity; for (let k = i - n; k < i; k++) l = Math.min(l, p[k]); return l; };
 
+// Two LEARNING characters sit on top of the eight rules. This is the honest
+// kind of "getting smarter": they adapt using only the scorecard SO FAR —
+// at day i they know outcomes through day i, never the future. No tuning
+// against the answer key.
+const ARENA_BASE = ['marge', 'viktor', 'momo', 'grandma', 'bill', 'volatilius', 'sunny', 'boris'];
+function makeArenaBrain() {
+  return {
+    window: Object.fromEntries(ARENA_BASE.map(k => [k, []])), // trailing 60d hit record
+    trust: Object.fromEntries(ARENA_BASE.map(k => [k, 1])),   // hedge weights, mean 1
+    copying: null, switches: 0,
+  };
+}
+function arenaBrainLearn(brain, calls, ret) {
+  const win = ret > 0;
+  for (const k of ARENA_BASE) {
+    const hit = (calls[k] > 0) === win;
+    const w = brain.window[k]; w.push(hit ? 1 : 0); if (w.length > 60) w.shift();
+    brain.trust[k] *= Math.exp(hit ? 0.15 : -0.15); // multiplicative weights (Hedge)
+  }
+  const tot = ARENA_BASE.reduce((a, k) => a + brain.trust[k], 0);
+  for (const k of ARENA_BASE) brain.trust[k] /= (tot / ARENA_BASE.length);
+}
+const arenaHitRate = w => w.reduce((a, b) => a + b, 0) / w.length;
+function apprenticePick(brain) {
+  let best = null, bestR = -1;
+  for (const k of ARENA_BASE) {
+    const w = brain.window[k];
+    if (w.length < 20) continue; // won't trust anyone on a thin record
+    const r = arenaHitRate(w);
+    if (r > bestR) { bestR = r; best = k; }
+  }
+  return best;
+}
+
 // Each: call(p, i) → +1 (grows) / −1 (wilts), using only p[0..i].
-// why(d, p, i) → one line of reasoning in their own voice (English, like all analysis text).
+// why(d, p, i, brain) → one line of reasoning in their own voice (English, like all analysis text).
 const ARENA_CAST = [
   { key: 'marge', face: '🤠', name: 'Marge the Trend Rider',
     call: (p, i) => aSMA(p, i, 10) >= aSMA(p, i, 30) ? 1 : -1,
@@ -1074,45 +1108,72 @@ const ARENA_CAST = [
   { key: 'boris', face: '🐻', name: 'Boris the Permabear',
     call: () => -1,
     why: () => 'down. It is all a bubble. It was a bubble yesterday and it is a bigger bubble today.' },
-  // The Committee votes on everyone above (never the monkey). Must stay 9th.
+  // The Committee votes on the eight rules above (never the learners or the monkey).
   { key: 'committee', face: '🏛️', name: 'The Committee', vote: true,
     why: d => d > 0 ? 'after careful deliberation, the majority of our members lean constructive on the near term.'
                     : 'after careful deliberation, the majority of our members advise near-term caution.' },
+  // The learners — they change their minds as results come in
+  { key: 'apprentice', face: '🎓', name: 'The Apprentice', learner: true,
+    why: (d, p, i, brain) => {
+      if (!brain || !brain.copying) return 'still watching everyone\'s scorecard — I follow the majority until someone proves themselves.';
+      const m = ARENA_CAST.find(c => c.key === brain.copying);
+      const r = (100 * arenaHitRate(brain.window[brain.copying])).toFixed(0);
+      return `I copy whoever\'s been hottest — right now that\'s ${m.face} ${m.name} (${r}% over the last 60 days). I switched mentors ${brain.switches} time${brain.switches === 1 ? '' : 's'} this year.`;
+    } },
+  { key: 'hedge', face: '🦉', name: 'Professor Hedge', learner: true,
+    why: (d, p, i, brain) => {
+      if (!brain) return 'I trust everyone a little, and adjust my trust after every miss.';
+      const tot = ARENA_BASE.reduce((a, k) => a + brain.trust[k], 0);
+      const top = [...ARENA_BASE].sort((a, b) => brain.trust[b] - brain.trust[a]).slice(0, 3)
+        .map(k => { const c = ARENA_CAST.find(x => x.key === k); return `${c.face} ${(100 * brain.trust[k] / tot).toFixed(0)}%`; });
+      return `every hit raised my trust, every miss cut it — after a full year I lean most on ${top.join(', ')}.`;
+    } },
   { key: 'monkey', face: '🐒', name: 'The Monkey', monkey: true,
     call: () => Math.random() < 0.5 ? -1 : 1,
     why: () => '🎯 *throws dart* …that one! The banana told me.' },
 ];
 const ARENA_WARM = 31; // longest lookback (30d SMA/vol) + 1 so every rule has data
 
-function arenaCallAt(prices, i) {
-  // one day's calls for the whole cast; committee = majority of the 8 humans
+function arenaCallAt(prices, i, brain) {
+  // one day's calls; committee = majority of the 8 rules, learners read the brain
   const calls = {};
   let sum = 0;
   for (const c of ARENA_CAST) {
     if (c.vote) calls[c.key] = sum >= 0 ? 1 : -1;
-    else calls[c.key] = c.call(prices, i);
-    if (!c.vote && !c.monkey) sum += calls[c.key];
+    else if (c.key === 'apprentice') {
+      const pick = apprenticePick(brain);
+      if (pick !== brain.copying) { if (brain.copying) brain.switches++; brain.copying = pick; }
+      calls[c.key] = pick ? calls[pick] : (sum >= 0 ? 1 : -1);
+    } else if (c.key === 'hedge') {
+      let v = 0;
+      for (const k of ARENA_BASE) v += brain.trust[k] * calls[k];
+      calls[c.key] = v >= 0 ? 1 : -1;
+    } else calls[c.key] = c.call(prices, i);
+    if (ARENA_BASE.includes(c.key)) sum += calls[c.key];
   }
   return calls;
 }
 
 function runArenaReplay(prices) {
+  const brain = makeArenaBrain();
   const rows = ARENA_CAST.map(c => ({ c, hits: 0, n: 0, equity: 100 }));
   for (let i = ARENA_WARM; i < prices.length - 1; i++) {
     const ret = prices[i + 1] / prices[i] - 1;
-    if (ret === 0) continue; // flat day — nobody scores
-    const calls = arenaCallAt(prices, i);
+    if (ret === 0) continue; // flat day — nobody scores, nobody learns
+    const calls = arenaCallAt(prices, i, brain);
     for (const r of rows) {
       const d = calls[r.c.key];
       r.n++;
       if ((d > 0) === (ret > 0)) r.hits++;
       r.equity *= 1 + d * ret; // long the call up, short it down
     }
+    arenaBrainLearn(brain, calls, ret); // learners update AFTER the day settles
   }
   return {
     rows: rows.sort((a, b) => b.hits / b.n - a.hits / a.n),
     holdEquity: 100 * (prices[prices.length - 1] / prices[ARENA_WARM]),
-    tomorrow: arenaCallAt(prices, prices.length - 1),
+    tomorrow: arenaCallAt(prices, prices.length - 1, brain),
+    brain,
   };
 }
 
@@ -1154,7 +1215,7 @@ async function runArena() {
       ARENA_CACHE[arenaSym] = j.points.filter(p => p.t >= cutoff).map(p => p.price);
     }
     const prices = ARENA_CACHE[arenaSym];
-    const { rows, holdEquity, tomorrow } = runArenaReplay(prices);
+    const { rows, holdEquity, tomorrow, brain } = runArenaReplay(prices);
     const tree = DATA.trees.find(t => t.symbol === arenaSym);
     sfx('rain');
 
@@ -1166,10 +1227,10 @@ async function runArena() {
     const board = rows.map((r, rank) => {
       const acc = 100 * r.hits / r.n;
       const medal = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : `${rank + 1}.`;
-      return `<div class="arena-row ${r.c.monkey ? 'arena-monkey' : ''}">
+      return `<div class="arena-row ${r.c.monkey ? 'arena-monkey' : ''} ${r.c.learner ? 'arena-learner' : ''}">
         <span class="ar-rank">${medal}</span>
         <span class="ar-face">${r.c.face}</span>
-        <span class="ar-name">${r.c.name}</span>
+        <span class="ar-name">${r.c.name}${r.c.learner ? ' <span class="ar-tag">learns</span>' : ''}</span>
         <span class="ar-bar"><i style="width:${acc.toFixed(1)}%"></i></span>
         <span class="ar-acc">${acc.toFixed(1)}%</span>
         <span class="ar-worth">${L().arenaWorth} ${fmt$(r.equity)}</span>
@@ -1181,14 +1242,14 @@ async function runArena() {
       return `<div class="arena-call ${d > 0 ? 'up' : 'down'}">
         <span class="ar-face">${c.face}</span>
         <div class="ac-main"><b>${c.name}</b> · ${d > 0 ? L().dirGrow : L().dirWilt}
-          <div class="imp-why">“${escapeHtml(c.why(d, prices, prices.length - 1))}”</div></div>
+          <div class="imp-why">“${escapeHtml(c.why(d, prices, prices.length - 1, brain))}”</div></div>
       </div>`;
     }).join('');
 
     out.innerHTML = `
       <div class="arena-board-h">${L().arenaBoard.replace('{n}', rows[0].n)} · ${tree ? tree.char + ' ' + escapeHtml(tree.name) : arenaSym}</div>
       <div class="arena-board">${board}</div>
-      <div class="arena-lesson">${beaten > 0 ? L().arenaMonkey.replace('{n}', beaten) : L().arenaMonkeyZero}</div>
+      <div class="arena-lesson">${beaten > 0 ? L().arenaMonkey.replace('{n}', beaten).replace('{total}', rows.length - 1) : L().arenaMonkeyZero}</div>
       <div class="arena-hold">${L().arenaHold.replace('{v}', fmt$(holdEquity))}</div>
       <div class="arena-board-h">${L().arenaTomorrow}</div>
       <div class="arena-calls">${calls}</div>`;

@@ -671,3 +671,8 @@ input[type=date],input[type=number]{font-family:'Space Mono',monospace;font-size
 .ac-main{font-size:13px;line-height:1.35}
 .arena-note{padding:2px 12px 12px}
 @media (max-width:640px){.ar-bar{display:none}.ar-worth{width:auto}}
+
+/* arena learners */
+.arena-row.arena-learner{background:#efe9ff}
+.ar-tag{font-family:'Space Mono',monospace;font-size:9.5px;font-weight:700;background:#fff;
+  border:2px solid var(--ink);border-radius:100px;padding:1px 7px;vertical-align:2px;text-transform:uppercase}
